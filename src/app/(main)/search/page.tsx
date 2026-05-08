@@ -8,65 +8,108 @@ import { categories, getAllMastersWithProfiles } from "@/lib/mock/data";
 import { DISTRICTS } from "@/constants";
 import { MasterWithProfile } from "@/types";
 
-// ─── Stars ────────────────────────────────────────────────────────────────────
-function Stars({ rating, size = 4 }: { rating: number; size?: number }) {
+/* ── Stars ── */
+function Stars({ rating, size = 15 }: { rating: number; size?: number }) {
   return (
     <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <svg key={s} className={`w-${size} h-${size} ${s <= Math.round(rating) ? "text-amber-400" : "text-slate-200"}`} fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+      {[1,2,3,4,5].map(s => (
+        <svg key={s} width={size} height={size} className={s <= Math.round(rating) ? "text-amber-400" : "text-gray-200"} fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
         </svg>
       ))}
     </div>
   );
 }
 
-// ─── Horizontal Master Card ───────────────────────────────────────────────────
+/* ── Category colors ── */
+const CAT_COLORS: Record<string, { bg: string; text: string }> = {
+  "cat-1": { bg: "bg-blue-50", text: "text-blue-700" },
+  "cat-2": { bg: "bg-amber-50", text: "text-amber-700" },
+  "cat-3": { bg: "bg-orange-50", text: "text-orange-700" },
+  "cat-4": { bg: "bg-violet-50", text: "text-violet-700" },
+  "cat-5": { bg: "bg-rose-50", text: "text-rose-700" },
+  "cat-6": { bg: "bg-pink-50", text: "text-pink-700" },
+  "cat-7": { bg: "bg-teal-50", text: "text-teal-700" },
+  "cat-8": { bg: "bg-red-50", text: "text-red-700" },
+  "cat-9": { bg: "bg-indigo-50", text: "text-indigo-700" },
+  "cat-10": { bg: "bg-emerald-50", text: "text-emerald-700" },
+};
+
+/* ── Star Picker ── */
+function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [hovered, setHovered] = useState(0);
+  return (
+    <div className="flex gap-1.5">
+      {[1,2,3,4,5].map(s => (
+        <button key={s} type="button"
+          onClick={() => onChange(value === s ? 0 : s)}
+          onMouseEnter={() => setHovered(s)} onMouseLeave={() => setHovered(0)}
+          className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-all duration-200 ${s <= (hovered || value) ? "bg-amber-50 text-amber-400 scale-110" : "bg-gray-50 text-gray-300 hover:bg-gray-100"}`}>
+          ★
+        </button>
+      ))}
+      {value > 0 && <span className="text-xs text-[#6B7280] self-center ml-1 font-medium">{value}+ yulduz</span>}
+    </div>
+  );
+}
+
+/* ── Horizontal Master Card — Premium ── */
 function MasterRow({ master }: { master: MasterWithProfile }) {
   const { profile } = master;
-  const cat = categories.find((c) => c.id === profile.categories[0]);
+  const cat = categories.find(c => c.id === profile.categories[0]);
+  const catColor = CAT_COLORS[profile.categories[0]] || CAT_COLORS["cat-1"];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-emerald-100 transition-all duration-200 p-5">
+    <div className={`group bg-white rounded-2xl border border-gray-100 transition-all duration-300 p-5 relative overflow-hidden`}
+      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)", borderLeft: `3px solid ${profile.isAvailable ? "#00C896" : "#D1D5DB"}` }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.1)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)"; }}>
       <div className="flex items-start gap-4">
         {/* Avatar */}
         <div className="relative shrink-0">
-          <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 ring-2 ring-slate-50">
-            <Image src={master.avatar} alt={master.name} width={64} height={64} className="w-full h-full object-cover" unoptimized />
+          <div className="w-[72px] h-[72px] rounded-full overflow-hidden bg-gray-100 ring-[3px] ring-gray-50">
+            <Image src={master.avatar} alt={master.name} width={72} height={72} className="w-full h-full object-cover" unoptimized />
           </div>
-          <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${profile.isAvailable ? "bg-emerald-500" : "bg-slate-300"}`} />
+          <span className={`absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border-[2.5px] border-white ${profile.isAvailable ? "bg-emerald-500" : "bg-gray-300"}`} />
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>
-              <h3 className="font-semibold text-slate-900">{master.name}</h3>
-              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                {cat && <span className="text-xs text-slate-500">{cat.icon} {cat.name}</span>}
-                <span className="text-slate-300">•</span>
-                <span className="text-xs text-slate-500">📍 {profile.location.district}</span>
-                <span className="text-slate-300">•</span>
-                <span className="text-xs text-slate-500">{profile.experience} yil tajriba</span>
+              <h3 className="text-lg font-bold text-[#0A0A0A]">{master.name}</h3>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                {cat && (
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-semibold ${catColor.bg} ${catColor.text}`}>
+                    {cat.icon} {cat.name}
+                  </span>
+                )}
+                <span className="flex items-center gap-1 text-sm text-[#374151]">
+                  <svg className="w-3.5 h-3.5 text-[#9CA3AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                  {profile.location.district}
+                </span>
+                <span className="text-sm text-[#374151]">• {profile.experience} yil</span>
               </div>
             </div>
-            <span className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-full ${profile.isAvailable ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
-              {profile.isAvailable ? "✓ Bo'sh" : "Band"}
+            <span className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${profile.isAvailable ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${profile.isAvailable ? "bg-emerald-500" : "bg-gray-400"}`} />
+              {profile.isAvailable ? "Bo'sh" : "Band"}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 mt-2">
-            <Stars rating={profile.rating} size={4} />
-            <span className="text-sm font-semibold text-slate-700">{profile.rating.toFixed(1)}</span>
-            <span className="text-xs text-slate-400">({profile.reviewCount} ta sharh)</span>
+          <div className="flex items-center gap-2 mt-2.5">
+            <Stars rating={profile.rating} />
+            <span className="text-sm font-bold text-[#0A0A0A]">{profile.rating.toFixed(1)}</span>
+            <span className="text-xs text-[#6B7280]">({profile.reviewCount} ta sharh)</span>
           </div>
 
-          <p className="mt-2 text-sm text-slate-500 line-clamp-2 leading-relaxed">{profile.bio}</p>
+          <p className="mt-2 text-sm text-[#4B5563] line-clamp-2 leading-relaxed">{profile.bio}</p>
         </div>
       </div>
 
       <div className="mt-4 flex justify-end">
-        <Link href={`/master/${master.id}`} className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-500 hover:text-white transition-all duration-200">
+        <Link href={`/master/${master.id}`}
+          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold border-2 border-brand-500 text-brand-600 hover:bg-brand-500 hover:text-white transition-all duration-200 active:scale-[0.97]">
           Profilni ko&apos;rish →
         </Link>
       </div>
@@ -74,31 +117,9 @@ function MasterRow({ master }: { master: MasterWithProfile }) {
   );
 }
 
-// ─── Star Picker ──────────────────────────────────────────────────────────────
-function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-  const [hovered, setHovered] = useState(0);
-  return (
-    <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <button
-          key={s}
-          type="button"
-          onClick={() => onChange(value === s ? 0 : s)}
-          onMouseEnter={() => setHovered(s)}
-          onMouseLeave={() => setHovered(0)}
-          className={`text-2xl transition-transform hover:scale-110 ${s <= (hovered || value) ? "text-amber-400" : "text-slate-200"}`}
-        >
-          ★
-        </button>
-      ))}
-      {value > 0 && (
-        <span className="text-xs text-slate-500 self-center ml-1">{value}+ yulduz</span>
-      )}
-    </div>
-  );
-}
-
-// ─── Search Page Inner ────────────────────────────────────────────────────────
+/* ════════════════════════════════════════════════════════════════════════════
+   Search Page Inner
+   ════════════════════════════════════════════════════════════════════════════ */
 function SearchPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -114,7 +135,6 @@ function SearchPageInner() {
 
   const allMasters = useMemo(() => getAllMastersWithProfiles(), []);
 
-  // Sync URL params
   useEffect(() => {
     const params = new URLSearchParams();
     if (query) params.set("q", query);
@@ -123,16 +143,15 @@ function SearchPageInner() {
     if (minRating) params.set("rating", String(minRating));
     if (onlyAvailable) params.set("available", "1");
     if (sortBy !== "rating") params.set("sort", sortBy);
-    const str = params.toString();
-    router.replace(`/search${str ? "?" + str : ""}`, { scroll: false });
+    router.replace(`/search${params.toString() ? "?" + params.toString() : ""}`, { scroll: false });
   }, [query, category, district, minRating, onlyAvailable, sortBy, router]);
 
   const filtered = useMemo(() => {
-    let res = allMasters.filter((m) => {
+    let res = allMasters.filter(m => {
       const { profile } = m;
       if (query) {
         const q = query.toLowerCase();
-        const catName = categories.find((c) => c.id === profile.categories[0])?.name.toLowerCase() || "";
+        const catName = categories.find(c => c.id === profile.categories[0])?.name.toLowerCase() || "";
         if (!m.name.toLowerCase().includes(q) && !profile.bio.toLowerCase().includes(q) && !catName.includes(q)) return false;
       }
       if (category && !profile.categories.includes(category)) return false;
@@ -141,7 +160,6 @@ function SearchPageInner() {
       if (onlyAvailable && !profile.isAvailable) return false;
       return true;
     });
-
     res = [...res].sort((a, b) => {
       if (sortBy === "reviews") return b.profile.reviewCount - a.profile.reviewCount;
       if (sortBy === "new") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -151,70 +169,64 @@ function SearchPageInner() {
   }, [allMasters, query, category, district, minRating, onlyAvailable, sortBy]);
 
   const hasFilters = category || district || minRating || onlyAvailable;
+  function clearFilters() { setCategory(""); setDistrict(""); setMinRating(0); setOnlyAvailable(false); }
 
-  function clearFilters() {
-    setCategory(""); setDistrict(""); setMinRating(0); setOnlyAvailable(false);
-  }
-
-  // ── Filter Panel (shared for sidebar + mobile sheet) ──────────────────────
+  /* ── Filter Panel ── */
   const FilterPanel = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-slate-900">Filtrlar</h3>
-        {hasFilters && (
-          <button onClick={clearFilters} className="text-xs text-emerald-600 hover:underline font-medium">
-            Tozalash
-          </button>
-        )}
+        <h3 className="font-bold text-[#0A0A0A]">Filtrlar</h3>
+        {hasFilters && <button onClick={clearFilters} className="text-xs text-brand-600 hover:underline font-semibold">Tozalash</button>}
       </div>
 
-      {/* Category */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Kategoriya</label>
-        <select value={category} onChange={(e) => setCategory(e.target.value)}
-          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition">
+        <label className="block text-sm font-bold text-[#0A0A0A] mb-2">Kategoriya</label>
+        <select value={category} onChange={e => setCategory(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#0A0A0A] focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-all">
           <option value="">Barchasi</option>
-          {categories.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+          {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
         </select>
       </div>
 
-      {/* District */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Tuman</label>
-        <select value={district} onChange={(e) => setDistrict(e.target.value)}
-          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition">
+        <label className="block text-sm font-bold text-[#0A0A0A] mb-2">Tuman</label>
+        <select value={district} onChange={e => setDistrict(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#0A0A0A] focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-all">
           <option value="">Barchasi</option>
-          {DISTRICTS.map((d) => <option key={d} value={d}>{d}</option>)}
+          {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
       </div>
 
-      {/* Rating */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Minimal reyting</label>
+        <label className="block text-sm font-bold text-[#0A0A0A] mb-2">Minimal reyting</label>
         <StarPicker value={minRating} onChange={setMinRating} />
       </div>
 
-      {/* Availability */}
-      <label className="flex items-center gap-3 cursor-pointer group">
+      {/* Toggle */}
+      <label className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-gray-50 transition-colors">
         <div className="relative">
-          <input type="checkbox" checked={onlyAvailable} onChange={(e) => setOnlyAvailable(e.target.checked)} className="sr-only peer" />
-          <div className="w-10 h-6 rounded-full bg-slate-200 peer-checked:bg-emerald-500 transition-colors" />
-          <div className="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
+          <input type="checkbox" checked={onlyAvailable} onChange={e => setOnlyAvailable(e.target.checked)} className="sr-only peer" />
+          <div className="w-11 h-6 rounded-full bg-gray-200 peer-checked:bg-brand-500 transition-colors duration-200" />
+          <div className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 peer-checked:translate-x-5" />
         </div>
-        <span className="text-sm text-slate-700 group-hover:text-slate-900">Faqat bo&apos;sh ustalar</span>
+        <span className="text-sm font-medium text-[#374151]">Faqat bo&apos;sh ustalar</span>
       </label>
 
       {/* Sort */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Saralash</label>
-        <div className="space-y-1.5">
+        <label className="block text-sm font-bold text-[#0A0A0A] mb-2">Saralash</label>
+        <div className="space-y-2">
           {[
             { val: "rating", label: "⭐ Reyting bo'yicha" },
             { val: "reviews", label: "💬 Sharh soni bo'yicha" },
             { val: "new", label: "🆕 Yangi" },
-          ].map((opt) => (
+          ].map(opt => (
             <button key={opt.val} onClick={() => setSortBy(opt.val)}
-              className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all ${sortBy === opt.val ? "bg-emerald-50 text-emerald-700 font-medium" : "text-slate-600 hover:bg-slate-50"}`}>
+              className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                sortBy === opt.val
+                  ? "border-brand-500 bg-brand-50 text-brand-700"
+                  : "border-gray-100 text-[#374151] hover:bg-gray-50 hover:border-gray-200"
+              }`}>
               {opt.label}
             </button>
           ))}
@@ -224,55 +236,44 @@ function SearchPageInner() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* ── Header ── */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 pt-10 pb-14 relative overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen" style={{ background: "#F8FAFB" }}>
+      {/* Header */}
+      <div className="relative overflow-hidden pt-10 pb-14" style={{ background: "linear-gradient(135deg, #0B1120, #0F1D2F, #0A3D2E)" }}>
+        <div className="absolute -top-20 -right-20 w-80 h-80 bg-brand-500/8 rounded-full blur-[100px] pointer-events-none" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Usta qidirish</h1>
-          <p className="text-slate-400 mb-8">Barcha soha bo&apos;yicha tajribali ustalarni toping</p>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">Usta qidirish</h1>
+          <p className="text-gray-400 mb-8 text-base">Barcha soha bo&apos;yicha tajribali ustalarni toping</p>
 
-          {/* Search Bar */}
-          <form onSubmit={(e) => { e.preventDefault(); setQuery(inputVal); }}
-            className="flex gap-3 max-w-2xl">
+          <form onSubmit={e => { e.preventDefault(); setQuery(inputVal); }} className="flex gap-3 max-w-2xl">
             <div className="relative flex-1">
-              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <input type="text" value={inputVal} onChange={(e) => { setInputVal(e.target.value); setQuery(e.target.value); }}
+              <input type="text" value={inputVal} onChange={e => { setInputVal(e.target.value); setQuery(e.target.value); }}
                 placeholder="Usta ismi yoki kasbi bo'yicha..."
-                className="w-full h-14 pl-12 pr-4 rounded-xl bg-white/10 backdrop-blur text-white placeholder:text-slate-400 border border-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition text-sm" />
+                className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white/[0.08] backdrop-blur-md text-white placeholder:text-gray-400 border border-white/[0.12] focus:outline-none focus:ring-2 focus:ring-brand-500/40 transition-all text-sm" />
             </div>
-            <button type="submit"
-              className="h-14 px-7 rounded-xl font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/25 transition-all active:scale-[0.98] whitespace-nowrap text-sm">
+            <button type="submit" className="h-14 px-7 rounded-2xl font-semibold text-white text-sm whitespace-nowrap transition-all duration-200 active:scale-[0.97]"
+              style={{ background: "linear-gradient(135deg, #00C896, #00A87E)", boxShadow: "0 4px 14px rgba(0,200,150,0.25)" }}>
               Qidirish
             </button>
           </form>
         </div>
-
-        {/* Wave */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 32" fill="none"><path d="M0 32 C360 0 1080 0 1440 32 L1440 32 L0 32 Z" fill="#f8fafc" /></svg>
-        </div>
+        <div className="absolute bottom-0 left-0 right-0"><svg viewBox="0 0 1440 32" fill="none"><path d="M0 32 C360 0 1080 0 1440 32 L1440 32 L0 32 Z" fill="#F8FAFB"/></svg></div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Mobile filter toggle */}
-        <div className="lg:hidden mb-4">
+        <div className="lg:hidden mb-5">
           <button onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-700 shadow-sm hover:border-emerald-300 transition">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-            </svg>
+            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-[#0A0A0A] transition-all hover:border-brand-300"
+            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
             Filtrlar
-            {hasFilters && <span className="w-2 h-2 bg-emerald-500 rounded-full" />}
-            <svg className={`w-4 h-4 ml-auto transition-transform ${showFilters ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            {hasFilters && <span className="w-2 h-2 bg-brand-500 rounded-full" />}
           </button>
-
           {showFilters && (
-            <div className="mt-3 bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div className="mt-3 bg-white rounded-2xl border border-gray-100 p-6 animate-slide-down" style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
               <FilterPanel />
             </div>
           )}
@@ -280,66 +281,53 @@ function SearchPageInner() {
 
         <div className="flex gap-8">
           {/* Desktop Sidebar */}
-          <aside className="hidden lg:block w-64 shrink-0">
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sticky top-24">
+          <aside className="hidden lg:block w-72 shrink-0">
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 sticky top-24" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)" }}>
               <FilterPanel />
             </div>
           </aside>
 
           {/* Results */}
           <div className="flex-1 min-w-0">
-            {/* Results count + active filters */}
-            <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
-              <p className="text-sm text-slate-500">
-                <span className="font-semibold text-slate-900 text-base">{filtered.length}</span> ta usta topildi
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+              <p className="text-base text-[#6B7280]">
+                <span className="text-xl font-extrabold text-[#0A0A0A]">{filtered.length}</span> ta usta topildi
               </p>
-
-              {/* Active filter chips */}
               <div className="flex flex-wrap gap-2">
                 {category && (
                   <button onClick={() => setCategory("")}
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium hover:bg-emerald-100 transition">
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-50 text-brand-700 text-xs font-semibold hover:bg-brand-100 transition">
                     {categories.find(c => c.id === category)?.name} ✕
                   </button>
                 )}
                 {district && (
                   <button onClick={() => setDistrict("")}
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium hover:bg-emerald-100 transition">
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-50 text-brand-700 text-xs font-semibold hover:bg-brand-100 transition">
                     {district} ✕
                   </button>
                 )}
                 {minRating > 0 && (
                   <button onClick={() => setMinRating(0)}
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-medium hover:bg-amber-100 transition">
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-semibold hover:bg-amber-100 transition">
                     {minRating}+ ★ ✕
-                  </button>
-                )}
-                {onlyAvailable && (
-                  <button onClick={() => setOnlyAvailable(false)}
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium hover:bg-emerald-100 transition">
-                    Bo&apos;sh ✕
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Master list */}
             {filtered.length > 0 ? (
-              <div className="space-y-4">
-                {filtered.map((m) => <MasterRow key={m.id} master={m} />)}
+              <div className="space-y-4 animate-stagger">
+                {filtered.map(m => <MasterRow key={m.id} master={m} />)}
               </div>
             ) : (
-              /* Empty state */
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-16 text-center">
+              <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
                 <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">Usta topilmadi</h3>
-                <p className="text-slate-500 text-sm max-w-sm mx-auto mb-6">
+                <h3 className="text-xl font-bold text-[#0A0A0A] mb-2">Usta topilmadi</h3>
+                <p className="text-[#6B7280] text-sm max-w-sm mx-auto mb-6">
                   Qidiruv shartlaringizga mos usta topilmadi. Filtrlarni o&apos;zgartirib qayta urinib ko&apos;ring.
                 </p>
                 <button onClick={() => { clearFilters(); setQuery(""); setInputVal(""); }}
-                  className="px-6 py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 transition">
-                  Barcha filtrlarni tozalash
-                </button>
+                  className="btn-primary text-sm">Barcha filtrlarni tozalash</button>
               </div>
             )}
           </div>
@@ -349,10 +337,9 @@ function SearchPageInner() {
   );
 }
 
-// ─── Exported Page (wrapped in Suspense for useSearchParams) ──────────────────
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center" style={{ background: "#F8FAFB" }}><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>}>
       <SearchPageInner />
     </Suspense>
   );

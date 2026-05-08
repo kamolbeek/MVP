@@ -53,30 +53,30 @@ export default function Navbar() {
 
   return (
     <>
-      <header className={`sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 transition-shadow ${scrolled ? "shadow-md shadow-slate-900/5" : ""}`}>
+      <header className={`sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 transition-all duration-300 ${scrolled ? "shadow-md shadow-gray-900/5" : ""}`}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
 
             {/* ── Logo ── */}
             <Link href="/home" className="flex items-center gap-2.5 shrink-0">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold text-base shadow-md shadow-emerald-500/20">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-base" style={{background:"linear-gradient(135deg,#00C896,#00A87E)",boxShadow:"0 4px 12px rgba(0,200,150,0.2)"}}>
                 X
               </div>
-              <span className="text-lg font-bold text-slate-900 hidden sm:block">Xalq Uchun</span>
+              <span className="text-lg font-extrabold text-[#0A0A0A] hidden sm:block tracking-tight">Xalq Uchun</span>
             </Link>
 
             {/* ── Desktop Nav ── */}
             <nav className="hidden md:flex items-center gap-1">
               {NAV_LINKS.map((l) => (
                 <Link key={l.href} href={l.href}
-                  className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`relative px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
                     isActive(l.href)
-                      ? "text-emerald-700 bg-emerald-50"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                      ? "text-brand-700 bg-brand-50"
+                      : "text-[#374151] hover:text-[#0A0A0A] hover:bg-gray-50"
                   }`}>
                   {l.label}
                   {isActive(l.href) && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-emerald-500 rounded-full" />
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-brand-500 rounded-full" />
                   )}
                 </Link>
               ))}
@@ -98,7 +98,7 @@ export default function Navbar() {
                   <div className="relative" ref={dropdownRef}>
                     <button onClick={() => setDropdownOpen(!dropdownOpen)}
                       className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-xl hover:bg-slate-100 transition">
-                      <div className="w-8 h-8 rounded-lg overflow-hidden bg-emerald-100 ring-2 ring-emerald-200">
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-brand-100 ring-2 ring-brand-200">
                         <Image src={currentUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.name}`}
                           alt={currentUser.name} width={32} height={32} className="w-full h-full object-cover" unoptimized />
                       </div>
@@ -112,7 +112,7 @@ export default function Navbar() {
 
                     {/* Dropdown */}
                     {dropdownOpen && (
-                      <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl shadow-slate-900/10 border border-slate-100 py-2 animate-fade-in">
+                      <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl border border-gray-100 py-2 animate-slide-down" style={{boxShadow:"0 8px 30px rgba(0,0,0,0.12)"}}>
                         {/* User info */}
                         <div className="px-4 py-2.5 border-b border-slate-50">
                           <p className="text-sm font-semibold text-slate-900 truncate">{currentUser.name}</p>

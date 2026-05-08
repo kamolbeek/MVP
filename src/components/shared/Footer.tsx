@@ -2,14 +2,14 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-950 text-slate-400">
+    <footer className="bg-gray-950 text-gray-400">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-8">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 pb-10 border-b border-slate-800">
 
           {/* ── Col 1: Brand ── */}
           <div>
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold text-base shadow-md">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-base" style={{background:"linear-gradient(135deg,#00C896,#00A87E)",boxShadow:"0 4px 12px rgba(0,200,150,0.2)"}}>
                 X
               </div>
               <span className="text-lg font-bold text-white">Xalq Uchun</span>
@@ -109,7 +109,7 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-slate-600">© 2024 Xalq Uchun. Barcha huquqlar himoyalangan.</p>
+          <p className="text-xs text-gray-600">© 2025 Xalq Uchun. Barcha huquqlar himoyalangan.</p>
           <div className="flex items-center gap-4 text-xs text-slate-700">
             <a href="#" className="hover:text-slate-500 transition-colors">Maxfiylik siyosati</a>
             <span>·</span>
