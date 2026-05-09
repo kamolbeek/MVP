@@ -100,9 +100,21 @@ async def handle_edited_message(update: Update, context: ContextTypes.DEFAULT_TY
         time_str = edit_date.strftime('%Y-%m-%d %H:%M:%S')
         
         # Eski xabarni xotiradan olish (bot_data)
-        old_text = "Noma'lum (bot ishga tushmasdan oldin yozilgan xabar)"
-        if 'messages' in context.bot_data and chat_id in context.bot_data['messages']:
-            old_text = context.bot_data['messages'][chat_id].get(message_id, old_text)
+        if 'messages' not in context.bot_data or chat_id not in context.bot_data['messages'] or message_id not in context.bot_data['messages'][chat_id]:
+            # Agar xabar bot ishga tushmasdan oldin yozilgan bo'lsa, bizda uning eski nusxasi yo'q.
+            # Shuning uchun uning nimasini o'zgartirganini aniqlay olmaymiz va e'tiborsiz qoldiramiz.
+            return
+            
+        old_text = context.bot_data['messages'][chat_id][message_id]
+            
+        # Agar matn umuman o'zgarmagan bo'lsa (faqat tugma yoki ko'rinmas probel o'zgargan bo'lsa), e'tibor bermaymiz
+        if old_text.strip() == new_text.strip():
+            return
+            
+        # Agar kompyuter o'chib qolib, tahrir qilinganiga 24 soatdan oshib ketgan xabarlar kelsa, ularni e'tiborsiz qoldiramiz
+        from datetime import timezone
+        if (datetime.now(timezone.utc) - msg.edit_date).total_seconds() > 86400:
+            return
             
         # O'zgarishlarni aniqlash funksiyasiga yuborish
         diff_result = get_diff(old_text, new_text)

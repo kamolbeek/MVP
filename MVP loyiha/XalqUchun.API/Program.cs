@@ -88,7 +88,7 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Xalq Uchun API",
+        Title = "USTAM API",
         Version = "v1",
         Description = "O'zbekistondagi ustalar platformasi — Backend API"
     });
@@ -132,7 +132,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Xalq Uchun API v1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "USTAM API v1");
         c.RoutePrefix = string.Empty; // Swagger at root
     });
 }
