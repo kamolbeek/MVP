@@ -131,7 +131,7 @@ export const useStore = create<AppState>()(
       toggleMobileMenu: () => set((s) => ({ isMobileMenuOpen: !s.isMobileMenuOpen })),
     }),
     {
-      name: "xalq-uchun-store",
+      name: "ustam-store",
       partialize: (s) => ({ currentUser: s.currentUser, isLoggedIn: s.isLoggedIn }),
     }
   )

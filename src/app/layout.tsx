@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Xalq Uchun — O'zbekistondagi eng yaxshi ustalar platformasi",
+  title: "USTAM — O'zbekistondagi eng yaxshi ustalar platformasi",
   description:
-    "Yaqiningizdagi eng yaxshi santexnik, elektrik, duradgor, dasturchi va boshqa ustalarni toping. Xalq Uchun — O'zbekiston ustalar platformasi.",
+    "Yaqiningizdagi eng yaxshi santexnik, elektrik, duradgor, dasturchi va boshqa ustalarni toping. USTAM — O'zbekiston ustalar platformasi.",
   keywords: "ustalar, santexnik, elektrik, dasturchi, Toshkent, O'zbekiston",
 };
 

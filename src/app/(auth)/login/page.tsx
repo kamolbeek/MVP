@@ -58,7 +58,7 @@ export default function LoginPage() {
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-emerald-500/25 mb-3">
               X
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Xalq Uchunga kirish</h1>
+            <h1 className="text-2xl font-bold text-slate-900">USTAM ga kirish</h1>
             <p className="text-slate-500 text-sm mt-1">Hisobingizga kiring</p>
           </div>
 

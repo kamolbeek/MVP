@@ -12,7 +12,7 @@ export default function Footer() {
               <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-base" style={{background:"linear-gradient(135deg,#00C896,#00A87E)",boxShadow:"0 4px 12px rgba(0,200,150,0.2)"}}>
                 X
               </div>
-              <span className="text-lg font-bold text-white">Xalq Uchun</span>
+              <span className="text-lg font-bold text-white">USTAM</span>
             </div>
             <p className="text-sm text-slate-500 leading-relaxed mb-5">
               O&apos;zbekistondagi ustalar platformasi. Kerakli mutaxassisni tez va ishonchli toping.
@@ -73,8 +73,8 @@ export default function Footer() {
                 </div>
                 <div>
                   <p className="text-xs text-slate-600 mb-0.5">Email</p>
-                  <a href="mailto:info@xalquchun.uz" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors">
-                    info@xalquchun.uz
+                  <a href="mailto:info@ustam.uz" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors">
+                    info@ustam.uz
                   </a>
                 </div>
               </li>
@@ -109,7 +109,7 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-gray-600">© 2025 Xalq Uchun. Barcha huquqlar himoyalangan.</p>
+          <p className="text-xs text-gray-600">© 2025 USTAM. Barcha huquqlar himoyalangan.</p>
           <div className="flex items-center gap-4 text-xs text-slate-700">
             <a href="#" className="hover:text-slate-500 transition-colors">Maxfiylik siyosati</a>
             <span>·</span>

@@ -1,8 +1,8 @@
 // ==========================================
-// Xalq Uchun - App Constants
+// USTAM - App Constants
 // ==========================================
 
-export const APP_NAME = "Xalq Uchun";
+export const APP_NAME = "USTAM";
 export const APP_DESCRIPTION = "O'zbekistondagi eng yaxshi ustalar platformasi";
 export const APP_TAGLINE = "Yaqiningizdagi eng yaxshi ustalarni toping!";
 

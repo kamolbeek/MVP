@@ -62,7 +62,7 @@ export default function Navbar() {
               <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-base" style={{background:"linear-gradient(135deg,#00C896,#00A87E)",boxShadow:"0 4px 12px rgba(0,200,150,0.2)"}}>
                 X
               </div>
-              <span className="text-lg font-extrabold text-[#0A0A0A] hidden sm:block tracking-tight">Xalq Uchun</span>
+              <span className="text-lg font-extrabold text-[#0A0A0A] hidden sm:block tracking-tight">USTAM</span>
             </Link>
 
             {/* ── Desktop Nav ── */}
@@ -177,7 +177,7 @@ export default function Navbar() {
             <div className="flex items-center justify-between p-4 border-b border-slate-100">
               <Link href="/home" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold text-sm">X</div>
-                <span className="font-bold text-slate-900">Xalq Uchun</span>
+                <span className="font-bold text-slate-900">USTAM</span>
               </Link>
               <button onClick={() => setMobileOpen(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
