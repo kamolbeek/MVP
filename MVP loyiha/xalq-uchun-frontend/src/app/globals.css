@@ -16,6 +16,19 @@
   --text-tertiary: #9CA3AF;
 }
 
+/* ── Dark Mode Variables ── */
+:root.dark, [data-theme="dark"] {
+  --background: #0F1117;
+  --foreground: #F1F5F9;
+  --primary: #00C896;
+  --primary-dark: #00A87E;
+  --surface: #1A1D27;
+  --border: #2D3148;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
+}
+
 @layer base {
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -171,4 +184,83 @@
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ── Dark Mode Global Overrides ── */
+.dark body {
+  background: #0F1117;
+  color: #F1F5F9;
+}
+
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  color: #F1F5F9;
+}
+
+.dark p {
+  color: #94A3B8;
+}
+
+/* Cards */
+.dark .card,
+.dark .bg-white {
+  background: #1A1D27 !important;
+  border-color: #2D3148 !important;
+}
+
+/* Navbar */
+.dark header {
+  background: rgba(15, 17, 23, 0.95) !important;
+  border-color: #2D3148 !important;
+}
+
+/* Gray backgrounds */
+.dark .bg-gray-50  { background: #1E2130 !important; }
+.dark .bg-gray-100 { background: #252836 !important; }
+.dark .bg-slate-100 { background: #252836 !important; }
+.dark .bg-slate-50  { background: #1E2130 !important; }
+
+/* Text */
+.dark .text-\[\#0A0A0A\] { color: #F1F5F9 !important; }
+.dark .text-\[\#374151\] { color: #CBD5E1 !important; }
+.dark .text-\[\#6B7280\] { color: #94A3B8 !important; }
+.dark .text-gray-700    { color: #CBD5E1 !important; }
+.dark .text-gray-900    { color: #F1F5F9 !important; }
+.dark .text-slate-700   { color: #CBD5E1 !important; }
+.dark .text-slate-900   { color: #F1F5F9 !important; }
+.dark .text-slate-600   { color: #94A3B8 !important; }
+
+/* Borders */
+.dark .border-gray-100  { border-color: #2D3148 !important; }
+.dark .border-slate-100 { border-color: #2D3148 !important; }
+.dark .border-gray-200  { border-color: #374060 !important; }
+
+/* Inputs */
+.dark .input-field {
+  background: #252836 !important;
+  border-color: #374060 !important;
+  color: #F1F5F9 !important;
+}
+
+/* Mobile drawer */
+.dark .fixed.bg-white {
+  background: #1A1D27 !important;
+}
+
+/* Dropdown */
+.dark .absolute.bg-white {
+  background: #1A1D27 !important;
+  border-color: #2D3148 !important;
+}
+
+/* Skeleton dark */
+.dark .skeleton {
+  background: linear-gradient(90deg, #252836 25%, #2D3148 50%, #252836 75%);
+  background-size: 200% 100%;
+}
+
+/* Smooth theme transition */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
 }
