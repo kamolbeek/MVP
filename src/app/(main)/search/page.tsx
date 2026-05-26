@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, Suspense } from "react";
+import { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -288,6 +288,24 @@ function SearchPageInner() {
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "rating");
   const [showFilters, setShowFilters] = useState(false);
 
+  // Tashqi navigatsiya (AI assistant, home search) dan kelganda URL params → state sync
+  const lastSyncedRef = useRef(searchParams.toString());
+  useEffect(() => {
+    const incoming = searchParams.toString();
+    if (incoming === lastSyncedRef.current) return;
+    lastSyncedRef.current = incoming;
+    setQuery(searchParams.get("q") || "");
+    setInputVal(searchParams.get("q") || "");
+    setCategory(searchParams.get("category") || "");
+    setRegion(searchParams.get("region") || "");
+    setDistrict(searchParams.get("district") || "");
+    setMinRating(Number(searchParams.get("rating") || 0));
+    setPriceMin(searchParams.get("pmin") ? Number(searchParams.get("pmin")) : "");
+    setPriceMax(searchParams.get("pmax") ? Number(searchParams.get("pmax")) : "");
+    setOnlyAvailable(searchParams.get("available") === "1");
+    setSortBy(searchParams.get("sort") || "rating");
+  }, [searchParams]);
+
   /* ── GPS location state ── */
   const [locating, setLocating] = useState(false);
   const [locLabel, setLocLabel] = useState(""); // detected location label
@@ -311,7 +329,9 @@ function SearchPageInner() {
     if (priceMax !== "") params.set("pmax", String(priceMax));
     if (onlyAvailable) params.set("available", "1");
     if (sortBy !== "rating") params.set("sort", sortBy);
-    router.replace(`/search${params.toString() ? "?" + params.toString() : ""}`, { scroll: false });
+    const newSearch = params.toString();
+    lastSyncedRef.current = newSearch; // O'z router.replace'i sync effectni qayta ishga tushirmasin
+    router.replace(`/search${newSearch ? "?" + newSearch : ""}`, { scroll: false });
   }, [query, category, region, district, minRating, priceMin, priceMax, onlyAvailable, sortBy, router]);
 
   /* ── GPS detect: Google Maps → manual bounding-box ── */
