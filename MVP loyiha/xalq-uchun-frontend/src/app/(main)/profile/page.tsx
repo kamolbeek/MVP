@@ -227,10 +227,11 @@ function MasterProfile(){
   const [showDeleteConfirm,setShowDeleteConfirm]=useState(false);
   const avatarInputRef=useRef<HTMLInputElement>(null);
   
-  // Portfolio add modal
+  // Portfolio states
   const [showAddPortfolio,setShowAddPortfolio]=useState(false);
   const [newPortTitle,setNewPortTitle]=useState("");
   const [newPortDesc,setNewPortDesc]=useState("");
+  const [selectedPortfolio,setSelectedPortfolio]=useState<any>(null);
 
   if(!currentUser||!masterData)return null;
 
@@ -356,21 +357,57 @@ function MasterProfile(){
           <div className="space-y-5">
             <div className="flex justify-between items-center"><h2 className="text-lg font-bold text-[#0A0A0A]">Portfolio</h2><button onClick={()=>setShowAddPortfolio(true)} className="btn-primary text-sm py-2 px-4">+ Yangi qo&apos;shish</button></div>
             
-            {/* Add portfolio modal */}
+            {/* Centered Add Portfolio Modal Overlay */}
             {showAddPortfolio&&(
-              <div className="p-5 rounded-xl border-2 border-brand-200 bg-brand-50/50 space-y-3 animate-slide-down">
-                <h3 className="font-bold text-[#0A0A0A]">Yangi portfolio qo&apos;shish</h3>
-                <input value={newPortTitle} onChange={e=>setNewPortTitle(e.target.value)} placeholder="Ish nomi (masalan: Vannaxona ta'miri)" className="input-field"/>
-                <input value={newPortDesc} onChange={e=>setNewPortDesc(e.target.value)} placeholder="Qisqacha tavsif" className="input-field"/>
-                <div className="flex gap-3">
-                  <button onClick={()=>{setShowAddPortfolio(false);setNewPortTitle("");setNewPortDesc("");}} className="btn-secondary flex-1 text-sm py-2.5">Bekor qilish</button>
-                  <button onClick={handleAddPortfolio} className="btn-primary flex-1 text-sm py-2.5">Qo&apos;shish</button>
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={()=>{setShowAddPortfolio(false);setNewPortTitle("");setNewPortDesc("");}}/>
+                <div className="relative bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md animate-slide-up z-10">
+                  <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+                    <h3 className="font-bold text-lg text-[#0A0A0A]">Yangi portfolio qo&apos;shish</h3>
+                    <button onClick={()=>{setShowAddPortfolio(false);setNewPortTitle("");setNewPortDesc("");}} className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-[#6B7280] transition">✕</button>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-[#0A0A0A] mb-1">Ish nomi</label>
+                      <input value={newPortTitle} onChange={e=>setNewPortTitle(e.target.value)} placeholder="Masalan: Vannaxona ta'miri" className="input-field"/>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-[#0A0A0A] mb-1">Qisqacha tavsif</label>
+                      <textarea rows={3} value={newPortDesc} onChange={e=>setNewPortDesc(e.target.value)} placeholder="Bajarilgan ish haqida..." className="input-field resize-none"/>
+                    </div>
+                    <div className="flex gap-3 pt-2">
+                      <button onClick={()=>{setShowAddPortfolio(false);setNewPortTitle("");setNewPortDesc("");}} className="btn-secondary flex-1 text-sm py-2.5">Bekor qilish</button>
+                      <button onClick={handleAddPortfolio} className="btn-primary flex-1 text-sm py-2.5">Qo&apos;shish</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Centered View Portfolio Modal Overlay */}
+            {selectedPortfolio&&(
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={()=>setSelectedPortfolio(null)}/>
+                <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-md animate-slide-up z-10">
+                  <div className={`h-40 bg-gradient-to-br ${selectedPortfolio.color || 'from-brand-400 to-teal-500'} flex items-end p-6 relative`}>
+                    <button onClick={()=>setSelectedPortfolio(null)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/25 hover:bg-black/40 text-white flex items-center justify-center transition">✕</button>
+                    <h3 className="text-xl font-extrabold text-white">{selectedPortfolio.title}</h3>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Bajarilgan xizmat tavsifi</h4>
+                      <p className="text-[#374151] leading-relaxed text-sm">{selectedPortfolio.description || "Ta'mirlash xizmati to'g'risida batafsil ma'lumot kiritilmagan."}</p>
+                    </div>
+                    <div className="pt-2 border-t border-gray-100 flex justify-end">
+                      <button onClick={()=>setSelectedPortfolio(null)} className="btn-primary text-sm py-2 px-6">Yopish</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">{allPortfolio.map(item=>(
-              <div key={item.id} className={`group relative rounded-xl overflow-hidden aspect-video bg-gradient-to-br ${item.color} cursor-pointer transition-transform`} onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.02)"}} onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)"}}>
+              <div key={item.id} onClick={()=>setSelectedPortfolio(item)} className={`group relative rounded-xl overflow-hidden aspect-video bg-gradient-to-br ${item.color} cursor-pointer transition-transform`} onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.02)"}} onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)"}}>
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all"/>
                 <button onClick={(e)=>{e.stopPropagation();if(item.id.startsWith("d-")){showToast("Standart namuna o'chirilmaydi","error");}else{removePortfolioItem(item.id);showToast("Portfolio o'chirildi");}}} className="absolute top-2 right-2 w-8 h-8 rounded-lg bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-10 active:scale-95">✕</button>
                 <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/50 to-transparent"><p className="text-white font-semibold text-sm">{item.title}</p><p className="text-white/70 text-xs">{item.description||"Ta'mirlash xizmati"}</p></div>
