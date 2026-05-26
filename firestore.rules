@@ -1,0 +1,35 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── /users/{uid} ──────────────────────────────────────────────────────────
+    // Faqat hisob egasi o'z profilini o'qiy va yoza oladi
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ── /masters/{masterId} ───────────────────────────────────────────────────
+    // Hamma o'qiy oladi (login shart emas)
+    // Yozish (create/update/delete) faqat hujjat egasiga ruxsat
+    match /masters/{masterId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null
+                            && resource.data.userId == request.auth.uid;
+    }
+
+    // ── /reviews/{reviewId} ───────────────────────────────────────────────────
+    // O'qish — login qilgan har kim
+    // Yozish — login qilgan har kim (o'z sharhini yaratishi yoki o'chirishi)
+    match /reviews/{reviewId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.clientId == request.auth.uid;
+      allow update, delete: if request.auth != null
+                            && resource.data.clientId == request.auth.uid;
+    }
+
+  }
+}

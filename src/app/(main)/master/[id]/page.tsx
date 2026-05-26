@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { getMasterWithProfile, getReviewsByMaster, categories, getAllMastersWithProfiles } from "@/lib/mock/data";
+import { MasterWithProfile } from "@/types";
 
 const CAT_COLORS: Record<string,{bg:string;text:string}> = {
   "cat-1":{bg:"bg-blue-50",text:"text-blue-700"},"cat-2":{bg:"bg-amber-50",text:"text-amber-700"},
@@ -24,7 +25,7 @@ function relDate(d:string){const days=Math.floor((Date.now()-new Date(d).getTime
 
 const PORTFOLIO=[{title:"Vannaxona ta'miri",color:"from-blue-400 to-cyan-500"},{title:"Quvur almashtirish",color:"from-emerald-400 to-teal-500"},{title:"Kran o'rnatish",color:"from-violet-400 to-purple-500"},{title:"Chiqindi tizimi",color:"from-orange-400 to-amber-500"},{title:"Bojxona ishi",color:"from-rose-400 to-pink-500"},{title:"Issiqlik tizimi",color:"from-slate-400 to-slate-600"}];
 
-function ContactModal({master,onClose}:{master:any;onClose:()=>void}){
+function ContactModal({master,onClose}:{master:MasterWithProfile;onClose:()=>void}){
   if(!master)return null;
   return(
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">

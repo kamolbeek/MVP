@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260" viewBox="0 0 400 260">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F766E"/>
+      <stop offset="100%" stop-color="#14B8A6"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="260" fill="url(#g)" rx="12"/>
+  <rect x="0" y="0" width="400" height="260" fill="rgba(0,0,0,0.12)" rx="12"/>
+  <text x="200" y="115" font-size="56" text-anchor="middle" dominant-baseline="middle">🖌️</text>
+  <text x="200" y="170" font-size="18" font-family="system-ui,sans-serif" font-weight="600"
+        fill="white" text-anchor="middle" dominant-baseline="middle" opacity="0.95">Devor bo'yash</text>
+  <text x="200" y="200" font-size="13" font-family="system-ui,sans-serif"
+        fill="white" text-anchor="middle" dominant-baseline="middle" opacity="0.6">Portfolio namunasi</text>
+</svg>

@@ -14,7 +14,7 @@ function ClientProfile(){
   const myReviews=useMemo(()=>reviews.filter(r=>r.clientId===currentUser?.id),[currentUser]);
   const savedMasters=useMemo(()=>getAllMastersWithProfiles().slice(0,3),[]);
   if(!currentUser)return null;
-  const tabs=[{id:"reviews",label:"Mening sharhlarim"},{id:"saved",label:"Saqlangan ustalar"},{id:"settings",label:"Sozlamalar"}];
+  const tabs: {id: "reviews"|"saved"|"settings"; label: string}[] = [{id:"reviews",label:"Mening sharhlarim"},{id:"saved",label:"Saqlangan ustalar"},{id:"settings",label:"Sozlamalar"}];
 
   return(
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in">
@@ -42,7 +42,7 @@ function ClientProfile(){
 
       {/* Tabs — pill style */}
       <div className="flex gap-2 overflow-x-auto scrollbar-hide p-1 bg-gray-100 rounded-xl w-fit">
-        {tabs.map(t=>(<button key={t.id} onClick={()=>setTab(t.id as any)} className={`px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${tab===t.id?"bg-white text-[#0A0A0A] shadow-sm":"text-[#6B7280] hover:text-[#0A0A0A]"}`}>{t.label}</button>))}
+        {tabs.map(t=>(<button key={t.id} onClick={()=>setTab(t.id)} className={`px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${tab===t.id?"bg-white text-[#0A0A0A] shadow-sm":"text-[#6B7280] hover:text-[#0A0A0A]"}`}>{t.label}</button>))}
       </div>
 
       {/* Tab content */}
@@ -104,7 +104,7 @@ function MasterProfile(){
   const[isAvailable,setIsAvailable]=useState(true);
   const masterData=useMemo(()=>{if(!currentUser)return null;return getMasterWithProfile(currentUser.id)||{profile:{rating:0,reviewCount:0,categories:[],location:{district:""},experience:0,bio:""}};},[currentUser]);
   if(!currentUser||!masterData)return null;
-  const tabs=[{id:"edit",label:"Ma'lumotlar"},{id:"portfolio",label:"Portfolio"},{id:"reviews",label:"Sharhlar"},{id:"settings",label:"Sozlamalar"}];
+  const tabs: {id: "edit"|"portfolio"|"reviews"|"settings"; label: string}[] = [{id:"edit",label:"Ma'lumotlar"},{id:"portfolio",label:"Portfolio"},{id:"reviews",label:"Sharhlar"},{id:"settings",label:"Sozlamalar"}];
 
   return(
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in">
@@ -151,7 +151,7 @@ function MasterProfile(){
 
       {/* Pill tabs */}
       <div className="flex gap-2 overflow-x-auto scrollbar-hide p-1 bg-gray-100 rounded-xl w-fit">
-        {tabs.map(t=>(<button key={t.id} onClick={()=>setTab(t.id as any)} className={`px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${tab===t.id?"bg-white text-[#0A0A0A] shadow-sm":"text-[#6B7280] hover:text-[#0A0A0A]"}`}>{t.label}</button>))}
+        {tabs.map(t=>(<button key={t.id} onClick={()=>setTab(t.id)} className={`px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${tab===t.id?"bg-white text-[#0A0A0A] shadow-sm":"text-[#6B7280] hover:text-[#0A0A0A]"}`}>{t.label}</button>))}
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 animate-fade-in" style={{boxShadow:"0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)"}}>

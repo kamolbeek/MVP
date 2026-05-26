@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import AuthProvider from "@/components/shared/AuthProvider";
 
 export const metadata: Metadata = {
   title: "USTAM — O'zbekistondagi eng yaxshi ustalar platformasi",
@@ -15,7 +16,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="uz">
-      <body className="min-h-screen flex flex-col">{children}</body>
+      <body className="min-h-screen flex flex-col">
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

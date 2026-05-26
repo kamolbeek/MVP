@@ -37,9 +37,8 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
     const rawPhone = "+" + phone.replace(/\D/g, "");
-    const result = login(rawPhone, password);
+    const result = await login(rawPhone, password);
     setLoading(false);
     if (result.success) {
       router.push("/home");
@@ -135,12 +134,6 @@ export default function LoginPage() {
             </Link>
           </p>
 
-          {/* Demo hint */}
-          <div className="mt-5 p-3 bg-amber-50 border border-amber-100 rounded-xl">
-            <p className="text-xs text-amber-700 font-medium mb-1">🧪 Demo kirish:</p>
-            <p className="text-xs text-amber-600">Mijoz: <code className="bg-amber-100 px-1 rounded">+998901111111</code> / <code className="bg-amber-100 px-1 rounded">client123</code></p>
-            <p className="text-xs text-amber-600 mt-0.5">Usta: <code className="bg-amber-100 px-1 rounded">+998901234567</code> / <code className="bg-amber-100 px-1 rounded">password1</code></p>
-          </div>
         </div>
 
         <div className="text-center mt-5">

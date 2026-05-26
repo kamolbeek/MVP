@@ -54,9 +54,8 @@ export default function RegisterPage() {
     if (role === "master" && !form.category) return setError("Kategoriya tanlang");
 
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
     const rawPhone = "+" + form.phone.replace(/\D/g, "");
-    const result = register({ name: form.name, phone: rawPhone, role, email: "" });
+    const result = await register({ name: form.name, phone: rawPhone, role, email: "", password: form.password });
     setLoading(false);
     if (result.success) router.push("/home");
     else setError(result.error || "Xatolik yuz berdi");
@@ -131,8 +130,8 @@ export default function RegisterPage() {
               {/* Role badge */}
               <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-xl">
                 <span className="text-lg">{role === "client" ? "👤" : "🔧"}</span>
-                <span className="text-sm font-medium text-emerald-700">{role === "client" ? "Mijoz" : "Usta"} sifatida ro'yxatdan o'tyapsiz</span>
-                <button type="button" onClick={() => setStep(1)} className="ml-auto text-xs text-emerald-600 hover:underline">O'zgartirish</button>
+                <span className="text-sm font-medium text-emerald-700">{role === "client" ? "Mijoz" : "Usta"} sifatida ro&apos;yxatdan o&apos;tyapsiz</span>
+                <button type="button" onClick={() => setStep(1)} className="ml-auto text-xs text-emerald-600 hover:underline">O&apos;zgartirish</button>
               </div>
 
               {/* Name */}
@@ -179,7 +178,7 @@ export default function RegisterPage() {
               {role === "master" && (
                 <div className="space-y-4 pt-1">
                   <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    <div className="flex-1 h-px bg-slate-100" />Usta ma'lumotlari<div className="flex-1 h-px bg-slate-100" />
+                    <div className="flex-1 h-px bg-slate-100" />Usta ma&apos;lumotlari<div className="flex-1 h-px bg-slate-100" />
                   </div>
 
                   <div>
@@ -208,7 +207,7 @@ export default function RegisterPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">O'zingiz haqida</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">O&apos;zingiz haqida</label>
                     <textarea value={form.bio} onChange={(e) => set_("bio", e.target.value)}
                       placeholder="Tajribangiz, ko'nikmalaringiz haqida yozing..."
                       rows={3}
