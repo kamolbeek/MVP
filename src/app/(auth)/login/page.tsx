@@ -8,12 +8,20 @@ import { useStore } from "@/lib/store/useStore";
 export default function LoginPage() {
   const router = useRouter();
   const login = useStore((s) => s.login);
+  const forgotPassword = useStore((s) => s.forgotPassword);
 
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Forgot password state
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotPhone, setForgotPhone] = useState("");
+  const [forgotMsg, setForgotMsg] = useState("");
+  const [forgotError, setForgotError] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   function formatPhone(val: string) {
     const digits = val.replace(/\D/g, "");
@@ -37,13 +45,34 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
+    await new Promise((r) => setTimeout(r, 600));
     const rawPhone = "+" + phone.replace(/\D/g, "");
-    const result = await login(rawPhone, password);
+    const result = login(rawPhone, password);
     setLoading(false);
     if (result.success) {
       router.push("/home");
     } else {
       setError(result.error || "Xatolik yuz berdi");
+    }
+  }
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setForgotError("");
+    setForgotMsg("");
+    if (!forgotPhone.trim()) {
+      setForgotError("Telefon raqam kiriting");
+      return;
+    }
+    setForgotLoading(true);
+    await new Promise((r) => setTimeout(r, 800));
+    const rawPhone = "+" + forgotPhone.replace(/\D/g, "");
+    const result = forgotPassword(rawPhone);
+    setForgotLoading(false);
+    if (result.success) {
+      setForgotMsg(result.message);
+    } else {
+      setForgotError(result.message);
     }
   }
 
@@ -91,7 +120,7 @@ export default function LoginPage() {
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <label className="block text-sm font-medium text-slate-700">Parol</label>
-                <button type="button" className="text-xs text-emerald-600 hover:text-emerald-700 font-medium">
+                <button type="button" onClick={() => { setShowForgot(true); setForgotPhone(""); setForgotMsg(""); setForgotError(""); }} className="text-xs text-emerald-600 hover:text-emerald-700 font-medium">
                   Parolni unutdingizmi?
                 </button>
               </div>
@@ -134,7 +163,59 @@ export default function LoginPage() {
             </Link>
           </p>
 
+          {/* Demo hint */}
+          <div className="mt-5 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+            <p className="text-xs text-amber-700 font-medium mb-1">🧪 Demo kirish:</p>
+            <p className="text-xs text-amber-600">Mijoz: <code className="bg-amber-100 px-1 rounded">+998901111111</code> / <code className="bg-amber-100 px-1 rounded">client123</code></p>
+            <p className="text-xs text-amber-600 mt-0.5">Usta: <code className="bg-amber-100 px-1 rounded">+998901234567</code> / <code className="bg-amber-100 px-1 rounded">password1</code></p>
+          </div>
         </div>
+
+        {/* Forgot Password Modal */}
+        {showForgot && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowForgot(false)} />
+            <div className="relative bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm animate-slide-up">
+              <button onClick={() => setShowForgot(false)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition">✕</button>
+              <div className="text-center mb-6">
+                <div className="text-4xl mb-3">🔑</div>
+                <h3 className="text-xl font-bold text-slate-900">Parolni tiklash</h3>
+                <p className="text-sm text-slate-500 mt-1">Telefon raqamingizni kiriting</p>
+              </div>
+              {forgotMsg && (
+                <div className="mb-4 p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-sm text-emerald-700">
+                  ✅ {forgotMsg}
+                </div>
+              )}
+              {forgotError && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600">
+                  ❌ {forgotError}
+                </div>
+              )}
+              {!forgotMsg && (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <input
+                    type="tel"
+                    value={forgotPhone}
+                    onChange={(e) => setForgotPhone(formatPhone(e.target.value))}
+                    placeholder="+998 90 123 45 67"
+                    className="w-full h-12 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition placeholder:text-slate-300"
+                  />
+                  <button type="submit" disabled={forgotLoading}
+                    className="w-full h-12 rounded-xl font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 shadow-md shadow-emerald-500/20 transition-all active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2">
+                    {forgotLoading ? "Tekshirilmoqda..." : "Parolni tiklash"}
+                  </button>
+                </form>
+              )}
+              {forgotMsg && (
+                <button onClick={() => setShowForgot(false)}
+                  className="w-full h-12 rounded-xl font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-500 transition-all active:scale-[0.98] mt-2">
+                  Tushundim
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="text-center mt-5">
           <Link href="/home" className="text-sm text-slate-400 hover:text-slate-600 transition">

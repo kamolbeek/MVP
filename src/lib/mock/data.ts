@@ -50,72 +50,62 @@ export const masterProfiles: MasterProfile[] = [
   {
     id: "mp-1", userId: "m-1", bio: "10 yillik tajribaga ega professional santexnik. Har qanday murakkablikdagi santexnika ishlarini bajaraman.",
     categories: ["cat-1"], rating: 4.8, reviewCount: 45, isAvailable: true, experience: 10,
-    hourlyRate: 80000, workHours: "Du-Sha: 08:00-20:00",
-    location: { lat: 41.3111, lng: 69.2797, address: "Yunusobod tumani, 7-mavze", city: "Toshkent", region: "Toshkent shahri", district: "Yunusobod" },
-    portfolio: ["/portfolio/santexnik-1.svg", "/portfolio/santexnik-2.svg"],
+    location: { lat: 41.3111, lng: 69.2797, address: "Yunusobod tumani, 7-mavze", city: "Toshkent", district: "Yunusobod" },
+    portfolio: ["/portfolio/santexnik-1.jpg", "/portfolio/santexnik-2.jpg"],
   },
   {
     id: "mp-2", userId: "m-2", bio: "Sifatli va ishonchli elektr montaj ishlari. Kvartira va ofislar uchun to'liq elektr ta'minoti.",
     categories: ["cat-2"], rating: 4.6, reviewCount: 38, isAvailable: true, experience: 7,
-    hourlyRate: 100000, workHours: "Du-Sha: 09:00-18:00",
-    location: { lat: 41.2855, lng: 69.2044, address: "Chilonzor tumani, 10-kvartal", city: "Toshkent", region: "Toshkent shahri", district: "Chilonzor" },
-    portfolio: ["/portfolio/elektrik-1.svg", "/portfolio/elektrik-2.svg"],
+    location: { lat: 41.2855, lng: 69.2044, address: "Chilonzor tumani, 10-kvartal", city: "Toshkent", district: "Chilonzor" },
+    portfolio: ["/portfolio/elektrik-1.jpg", "/portfolio/elektrik-2.jpg"],
   },
   {
     id: "mp-3", userId: "m-3", bio: "Professional duradgor — mebel yasash, ta'mirlash va o'rnatish. Buyurtmachi xohishiga ko'ra ishlash.",
     categories: ["cat-3"], rating: 4.9, reviewCount: 52, isAvailable: false, experience: 12,
-    hourlyRate: 120000, workHours: "Du-Ju: 09:00-18:00",
-    location: { lat: 41.3385, lng: 69.3346, address: "Mirzo Ulug'bek tumani, Buyuk Ipak Yo'li", city: "Toshkent", region: "Toshkent shahri", district: "Mirzo Ulug'bek" },
-    portfolio: ["/portfolio/duradgor-1.svg", "/portfolio/duradgor-2.svg"],
+    location: { lat: 41.3385, lng: 69.3346, address: "Mirzo Ulug'bek tumani, Buyuk Ipak Yo'li", city: "Toshkent", district: "Mirzo Ulug'bek" },
+    portfolio: ["/portfolio/duradgor-1.jpg", "/portfolio/duradgor-2.jpg"],
   },
   {
     id: "mp-4", userId: "m-4", bio: "Full-stack dasturchi. React, Next.js, Node.js texnologiyalarida veb va mobil ilovalar yarataman.",
     categories: ["cat-4"], rating: 4.7, reviewCount: 29, isAvailable: true, experience: 5,
-    hourlyRate: 200000, workHours: "Har kuni: 10:00-22:00",
-    location: { lat: 41.3045, lng: 69.2511, address: "Shayxontohur tumani, Navoiy ko'chasi", city: "Toshkent", region: "Toshkent shahri", district: "Shayxontohur" },
-    portfolio: ["/portfolio/dasturchi-1.svg"],
+    location: { lat: 41.3045, lng: 69.2511, address: "Shayxontohur tumani, Navoiy ko'chasi", city: "Toshkent", district: "Shayxontohur" },
+    portfolio: ["/portfolio/dasturchi-1.jpg"],
   },
   {
     id: "mp-5", userId: "m-5", bio: "Professional videograf. To'ylar, tadbirlar va reklama videolarini suratga olaman.",
     categories: ["cat-5"], rating: 4.5, reviewCount: 33, isAvailable: true, experience: 6,
-    hourlyRate: 150000, workHours: "Du-Ya: 09:00-20:00",
-    location: { lat: 41.2965, lng: 69.2782, address: "Yakkasaroy tumani, Bobur ko'chasi", city: "Toshkent", region: "Toshkent shahri", district: "Yakkasaroy" },
-    portfolio: ["/portfolio/videograf-1.svg", "/portfolio/videograf-2.svg"],
+    location: { lat: 41.2965, lng: 69.2782, address: "Yakkasaroy tumani, Bobur ko'chasi", city: "Toshkent", district: "Yakkasaroy" },
+    portfolio: ["/portfolio/videograf-1.jpg", "/portfolio/videograf-2.jpg"],
   },
   {
     id: "mp-6", userId: "m-6", bio: "Grafik va UI/UX dizayner. Logotip, brending, veb-sayt va mobil ilova dizaynlari.",
     categories: ["cat-6"], rating: 4.8, reviewCount: 41, isAvailable: true, experience: 8,
-    hourlyRate: 180000, workHours: "Du-Ju: 10:00-19:00",
-    location: { lat: 41.3111, lng: 69.2797, address: "Yunusobod tumani, 19-mavze", city: "Toshkent", region: "Toshkent shahri", district: "Yunusobod" },
-    portfolio: ["/portfolio/dizayner-1.svg", "/portfolio/dizayner-2.svg"],
+    location: { lat: 41.3111, lng: 69.2797, address: "Yunusobod tumani, 19-mavze", city: "Toshkent", district: "Yunusobod" },
+    portfolio: ["/portfolio/dizayner-1.jpg", "/portfolio/dizayner-2.jpg"],
   },
   {
     id: "mp-7", userId: "m-7", bio: "Professional bo'yoqchi. Kvartira va ofis devorlarini bo'yash, dekorativ bo'yoq ishlari.",
     categories: ["cat-7"], rating: 4.3, reviewCount: 27, isAvailable: false, experience: 9,
-    hourlyRate: 70000, workHours: "Du-Sha: 08:00-18:00",
-    location: { lat: 41.2855, lng: 69.2044, address: "Chilonzor tumani, 3-kvartal", city: "Toshkent", region: "Toshkent shahri", district: "Chilonzor" },
-    portfolio: ["/portfolio/boyoqchi-1.svg"],
+    location: { lat: 41.2855, lng: 69.2044, address: "Chilonzor tumani, 3-kvartal", city: "Toshkent", district: "Chilonzor" },
+    portfolio: ["/portfolio/boyoqchi-1.jpg"],
   },
   {
     id: "mp-8", userId: "m-8", bio: "Tajribali payvandchi. Metall konstruksiyalar, darvozalar, panjaralar yasash va ta'mirlash.",
     categories: ["cat-8"], rating: 4.6, reviewCount: 35, isAvailable: true, experience: 11,
-    hourlyRate: 100000, workHours: "Du-Sha: 08:00-20:00",
-    location: { lat: 41.3385, lng: 69.3346, address: "Mirzo Ulug'bek tumani, Temur ko'chasi", city: "Toshkent", region: "Toshkent shahri", district: "Mirzo Ulug'bek" },
-    portfolio: ["/portfolio/payvandchi-1.svg", "/portfolio/payvandchi-2.svg"],
+    location: { lat: 41.3385, lng: 69.3346, address: "Mirzo Ulug'bek tumani, Temur ko'chasi", city: "Toshkent", district: "Mirzo Ulug'bek" },
+    portfolio: ["/portfolio/payvandchi-1.jpg", "/portfolio/payvandchi-2.jpg"],
   },
   {
     id: "mp-9", userId: "m-9", bio: "Professional chilangar. Eshik qulflari, avtomobil kalitlari va seyf ochish xizmati.",
     categories: ["cat-9"], rating: 4.4, reviewCount: 22, isAvailable: true, experience: 4,
-    hourlyRate: 60000, workHours: "Har kuni: 08:00-22:00",
-    location: { lat: 41.3045, lng: 69.2511, address: "Shayxontohur tumani, Zarqaynar", city: "Toshkent", region: "Toshkent shahri", district: "Shayxontohur" },
-    portfolio: ["/portfolio/chilangar-1.svg"],
+    location: { lat: 41.3045, lng: 69.2511, address: "Shayxontohur tumani, Zarqaynar", city: "Toshkent", district: "Shayxontohur" },
+    portfolio: ["/portfolio/chilangar-1.jpg"],
   },
   {
     id: "mp-10", userId: "m-10", bio: "Matematika va fizika fanlari bo'yicha tajribali repetitor. DTM ga tayyorlov kurslari.",
     categories: ["cat-10"], rating: 4.9, reviewCount: 48, isAvailable: true, experience: 15,
-    hourlyRate: 90000, workHours: "Du-Sha: 09:00-21:00",
-    location: { lat: 41.2965, lng: 69.2782, address: "Yakkasaroy tumani, Shota Rustaveli", city: "Toshkent", region: "Toshkent shahri", district: "Yakkasaroy" },
-    portfolio: ["/portfolio/repetitor-1.svg"],
+    location: { lat: 41.2965, lng: 69.2782, address: "Yakkasaroy tumani, Shota Rustaveli", city: "Toshkent", district: "Yakkasaroy" },
+    portfolio: ["/portfolio/repetitor-1.jpg"],
   },
 ];
 
@@ -146,147 +136,18 @@ export const reviews: Review[] = [
 ];
 
 // ==========================================
-// 420 Generated Masters (14 viloyat × 10 kasb × 3 master)
-// ==========================================
-
-const _FIRST: string[] = [
-  "Jasur","Bobur","Sardor","Sherzod","Anvar","Dilshod","Rustam","Farhod","Otabek","Nodir",
-  "Ulugbek","Sanjar","Behruz","Eldor","Kamol","Timur","Mirzo","Alisher","Hamza","Doniyor",
-  "Zafar","Jahongir","Mansur","Ravshan","Bahodir","Ilhom","Murod","Nozim","Orif","Parviz",
-  "Rauf","Suxrob","Tohir","Umid","Xurshid","Azizjon","Bekzod","Dostonbek","Elbek","Farrux",
-  "Komil","Laziz","Muzaffar","Nuriddin","Oybek","Sarvar","Baxtiyor","Davron","Erkin","Furqat",
-  "Islom","Javlon","Mahmudbek","Navruz","Temurali","Shohruh","Ibrohim","Hamid","Lochinbek","Nurbek",
-];
-
-const _LAST: string[] = [
-  "Karimov","Rahimov","Xasanov","Yusupov","Mirzayev","Toshmatov","Ergashev","Aliyev","Nazarov","Sobirov",
-  "Qodirov","Umarov","Abdullayev","Tursunov","Xolmatov","Botirov","Haydarov","Yo'ldoshev","Zokirov","Tillayev",
-  "Mamatov","Holiqov","Ismoilov","Jalolov","Kenjayev","Latipov","Mo'minov","Nishonov","Ortiqov","Qosimov",
-  "Sotvoldiyev","Tojimatov","Usmonov","Valiyev","Xo'jayev","Yunusov","Zaripov","Atajonov","Baxtiyorov","Choriyev",
-  "Dusmatov","Eshmatov","Fayzullayev","G'aniyev","Hamidov","Ibragimov","Normatov","Raximov","Sultonov","Tojiboyev",
-];
-
-interface _RegionGen { region: string; districts: [string, string, string]; lat: number; lng: number; }
-const _REGIONS: _RegionGen[] = [
-  // district[0]=cat-1,4,7,10 | district[1]=cat-2,5,8 | district[2]=cat-3,6,9
-  { region:"Toshkent shahri",         districts:["Chilonzor","Yunusobod","Mirzo Ulug'bek"],   lat:41.283,lng:69.204 },
-  { region:"Toshkent viloyati",        districts:["Yangiyo'l","Qibray","Zangiota"],            lat:41.113,lng:69.045 },
-  { region:"Samarqand viloyati",       districts:["Samarqand tumani","Urgut","Kattaqo'rg'on"], lat:39.649,lng:66.975 },
-  { region:"Farg'ona viloyati",        districts:["Farg'ona tumani","Rishton","Oltiariq"],      lat:40.384,lng:71.787 },
-  { region:"Andijon viloyati",         districts:["Asaka","Shahrixon","Marhamat"],              lat:40.636,lng:72.238 },
-  { region:"Namangan viloyati",        districts:["Namangan tumani","Pop","Chortoq"],           lat:40.990,lng:71.679 },
-  { region:"Buxoro viloyati",          districts:["Buxoro tumani","G'ijduvon","Romitan"],       lat:39.767,lng:64.421 },
-  { region:"Xorazm viloyati",          districts:["Urganch tumani","Xiva tumani","Shovot"],     lat:41.551,lng:60.621 },
-  { region:"Qashqadaryo viloyati",     districts:["Shahrisabz tumani","Qarshi tumani","Kitob"], lat:39.137,lng:66.877 },
-  { region:"Surxondaryo viloyati",     districts:["Termiz tumani","Denov","Boysun"],            lat:37.224,lng:67.278 },
-  { region:"Jizzax viloyati",          districts:["Jizzax tumani","Zafarobod","G'allaorol"],    lat:40.121,lng:67.835 },
-  { region:"Sirdaryo viloyati",        districts:["Guliston tumani","Boyovut","Sardoba"],       lat:40.489,lng:68.784 },
-  { region:"Navoiy viloyati",          districts:["Navoiy tumani","Nurota","Karmana"],          lat:40.089,lng:65.378 },
-  { region:"Qoraqalpog'iston Respublikasi", districts:["Nukus tumani","Beruniy","Qo'ng'irot"], lat:42.461,lng:59.613 },
-];
-
-const _BIOS: Record<string,(d:string,e:number)=>string> = {
-  "cat-1": (d,e)=>`${e} yillik santexnik. ${d}da quvur, kran va sanitariya ishlarini professional bajaraman.`,
-  "cat-2": (d,e)=>`${d}da elektr montaj va ta'mirlash. ${e} yildan beri kvartira va ofislarga xizmat ko'rsataman.`,
-  "cat-3": (d,e)=>`Duradgorlik ustasi — ${d}. Mebel yasash, eshik-deraza ta'miri bo'yicha ${e} yil tajriba.`,
-  "cat-4": (d,e)=>`Full-stack dasturchi. ${d}dan ishlaydi. Veb va mobil ilovalar yaratish bo'yicha ${e} yillik tajriba.`,
-  "cat-5": (d,e)=>`${d} videografi. To'y, tadbir va reklama videolarini ${e} yildan beri professional suratga olaman.`,
-  "cat-6": (d,e)=>`Grafik dizayner — ${d}. Logotip, brending va UI dizayn bo'yicha ${e} yil ish tajribasi.`,
-  "cat-7": (d,e)=>`${d}da bo'yoqchi. Kvartira va ofislarni dekorativ bo'yash bo'yicha ${e} yillik tajriba.`,
-  "cat-8": (d,e)=>`Payvandchi usta — ${d}. Metall konstruksiyalar, darvoza va panjaralar bo'yicha ${e} yil.`,
-  "cat-9": (d,e)=>`${d}da chilangar xizmati. Qulf, kalit va eshik ochish bo'yicha ${e} yildan beri ishlayman.`,
-  "cat-10":(d,e)=>`${d} repetitori. Matematika va fizikadan ${e} yildan beri DTM va maktab o'quvchilarini tayyorlayman.`,
-};
-
-const _RATES: Record<string,number[]> = {
-  "cat-1":[60000,70000,80000,90000,100000],
-  "cat-2":[70000,85000,100000,110000,120000],
-  "cat-3":[80000,100000,120000,130000,150000],
-  "cat-4":[150000,180000,200000,250000,300000],
-  "cat-5":[100000,130000,150000,180000,200000],
-  "cat-6":[100000,130000,150000,180000,200000],
-  "cat-7":[50000,60000,70000,75000,80000],
-  "cat-8":[80000,90000,100000,110000,120000],
-  "cat-9":[50000,60000,65000,70000,80000],
-  "cat-10":[60000,70000,80000,90000,100000],
-};
-
-const _HOURS = ["Du-Sha: 08:00-18:00","Du-Ju: 09:00-20:00","Har kuni: 08:00-22:00","Du-Sha: 09:00-18:00","Har kuni: 09:00-21:00"];
-const _CAT_IDS = ["cat-1","cat-2","cat-3","cat-4","cat-5","cat-6","cat-7","cat-8","cat-9","cat-10"];
-
-function _buildGeneratedMasters():{users:User[];profiles:MasterProfile[]} {
-  const users:User[] = [];
-  const profiles:MasterProfile[] = [];
-  let idx = 11;
-  let ni = 0;
-
-  _REGIONS.forEach(({ region, districts, lat, lng }, ri) => {
-    _CAT_IDS.forEach((catId, ci) => {
-      const district = districts[ci % 3];
-      for (let k = 0; k < 3; k++) {
-        const fn = _FIRST[ni % _FIRST.length];
-        const ln = _LAST[(ni * 7 + Math.floor(ni / _FIRST.length) * 11) % _LAST.length];
-        const name = `${fn} ${ln}`;
-        const id = `m-${idx}`;
-        const exp = 1 + ((ri * 30 + ci * 3 + k) % 14);
-        const rating = parseFloat((4.0 + (ni % 10) * 0.1).toFixed(1));
-        const reviewCount = 5 + ((ri * 13 + ci * 7 + k * 3) % 56);
-        const rates = _RATES[catId];
-        const hourlyRate = rates[(ni + ri + ci) % rates.length];
-        const isAvailable = (ni + ri + ci) % 5 !== 0;
-        const pfx = [90,91,93,94,95,97,98,99][idx % 8];
-        const phone = `+998${pfx}${String(10000000 + idx).slice(1)}`;
-        const month = String(1 + ni % 9).padStart(2,"0");
-        const day   = String(10 + ni % 19).padStart(2,"0");
-
-        users.push({
-          id, name, phone,
-          email:`${fn.toLowerCase()}${idx}@mail.uz`,
-          role:"master",
-          avatar:`https://api.dicebear.com/7.x/avataaars/svg?seed=${fn}${idx}`,
-          createdAt:`2024-${month}-${day}`,
-        });
-        profiles.push({
-          id:`mp-${idx}`, userId:id,
-          bio:_BIOS[catId](district, exp),
-          categories:[catId],
-          rating, reviewCount, isAvailable, experience:exp,
-          hourlyRate,
-          workHours:_HOURS[(ri + ci + k) % _HOURS.length],
-          location:{
-            lat: parseFloat((lat + (ni % 10) * 0.005).toFixed(4)),
-            lng: parseFloat((lng + (ni % 10) * 0.005).toFixed(4)),
-            address:`${district}, ${1 + ni % 99}-uy`,
-            city: region.split(" ")[0],
-            region, district,
-          },
-          portfolio:[],
-        });
-        idx++; ni++;
-      }
-    });
-  });
-  return { users, profiles };
-}
-
-const { users: _genUsers, profiles: _genProfiles } = _buildGeneratedMasters();
-
-export const allMasterUsers: User[]           = [...masterUsers,   ..._genUsers];
-export const allMasterProfiles: MasterProfile[] = [...masterProfiles, ..._genProfiles];
-
-// ==========================================
 // Helper Functions
 // ==========================================
 export function getMasterWithProfile(masterId: string) {
-  const user    = allMasterUsers.find((u) => u.id === masterId);
-  const profile = allMasterProfiles.find((p) => p.userId === masterId);
+  const user = masterUsers.find((u) => u.id === masterId);
+  const profile = masterProfiles.find((p) => p.userId === masterId);
   if (!user || !profile) return null;
   return { ...user, profile };
 }
 
 export function getAllMastersWithProfiles() {
-  return allMasterUsers.map((user) => {
-    const profile = allMasterProfiles.find((p) => p.userId === user.id)!;
+  return masterUsers.map((user) => {
+    const profile = masterProfiles.find((p) => p.userId === user.id)!;
     return { ...user, profile };
   });
 }

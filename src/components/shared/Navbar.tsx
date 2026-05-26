@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@/lib/store/useStore";
+import { useTheme } from "@/lib/store/useTheme";
 
 const NAV_LINKS = [
   { href: "/home", label: "Bosh sahifa" },
@@ -15,6 +16,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser, isLoggedIn, logout } = useStore();
+  const { theme, toggleTheme } = useTheme();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -87,12 +89,69 @@ export default function Navbar() {
               {isLoggedIn && currentUser ? (
                 <>
                   {/* Notification bell */}
-                  <button className="relative w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 transition">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white" />
-                  </button>
+                  {(() => {
+                    const { notifications, markNotificationRead, markAllNotificationsRead } = useStore();
+                    const [notifOpen, setNotifOpen] = useState(false);
+                    const notifRef = useRef<HTMLDivElement>(null);
+                    const unreadCount = notifications.filter(n => !n.read).length;
+
+                    // Close on outside click
+                    useEffect(() => {
+                      function handler(e: MouseEvent) {
+                        if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+                          setNotifOpen(false);
+                        }
+                      }
+                      document.addEventListener("mousedown", handler);
+                      return () => document.removeEventListener("mousedown", handler);
+                    }, []);
+
+                    return (
+                      <div className="relative" ref={notifRef}>
+                        <button onClick={() => setNotifOpen(!notifOpen)} className="relative w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 transition">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                          </svg>
+                          {unreadCount > 0 && (
+                            <span className="absolute top-1 right-1 w-4 h-4 bg-emerald-500 rounded-full ring-2 ring-white text-[10px] font-bold text-white flex items-center justify-center">{unreadCount}</span>
+                          )}
+                        </button>
+
+                        {notifOpen && (
+                          <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl border border-gray-100 py-2 animate-slide-down" style={{boxShadow:"0 8px 30px rgba(0,0,0,0.12)"}}>
+                            <div className="px-4 py-2.5 border-b border-slate-50 flex justify-between items-center">
+                              <p className="text-sm font-bold text-slate-900">Bildirishnomalar</p>
+                              {unreadCount > 0 && (
+                                <button onClick={() => markAllNotificationsRead()} className="text-xs text-brand-600 hover:underline font-medium">
+                                  Barchasini o&apos;qish
+                                </button>
+                              )}
+                            </div>
+                            {notifications.length === 0 ? (
+                              <div className="p-6 text-center">
+                                <div className="text-3xl mb-2">🔔</div>
+                                <p className="text-sm text-[#6B7280]">Bildirishnomalar yo&apos;q</p>
+                              </div>
+                            ) : (
+                              <div className="max-h-72 overflow-y-auto">
+                                {notifications.map(n => (
+                                  <button key={n.id} onClick={() => { markNotificationRead(n.id); }}
+                                    className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition flex gap-3 ${!n.read ? "bg-brand-50/30" : ""}`}>
+                                    <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!n.read ? "bg-brand-500" : "bg-transparent"}`} />
+                                    <div>
+                                      <p className={`text-sm ${!n.read ? "font-bold text-slate-900" : "font-medium text-slate-700"}`}>{n.title}</p>
+                                      <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
+                                      <p className="text-xs text-slate-400 mt-1">{n.time}</p>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Avatar dropdown */}
                   <div className="relative" ref={dropdownRef}>
@@ -153,6 +212,26 @@ export default function Navbar() {
                   </Link>
                 </div>
               )}
+
+              {/* Dark/Light mode toggle */}
+              <button
+                id="theme-toggle-btn"
+                onClick={toggleTheme}
+                title={theme === "dark" ? "Light mode" : "Dark mode"}
+                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 dark:bg-slate-700 dark:hover:bg-slate-600 bg-slate-100 hover:bg-slate-200"
+              >
+                {theme === "dark" ? (
+                  /* Sun icon */
+                  <svg className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.172 18.894a.75.75 0 001.06 1.06l1.591-1.59a.75.75 0 00-1.06-1.061l-1.591 1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.166 7.106a.75.75 0 001.06 1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+                  </svg>
+                ) : (
+                  /* Moon icon */
+                  <svg className="w-5 h-5 text-slate-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path fillRule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clipRule="evenodd"/>
+                  </svg>
+                )}
+              </button>
 
               {/* Mobile hamburger */}
               <button onClick={() => setMobileOpen(!mobileOpen)}

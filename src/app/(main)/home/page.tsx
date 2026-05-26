@@ -4,11 +4,8 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { categories, getAllMastersWithProfiles, getMasterWithProfile } from "@/lib/mock/data";
-import { REGIONS } from "@/constants";
-import { useStore } from "@/lib/store/useStore";
-import { ProfileCompletionBanner } from "@/components/features/ProfileCompletion";
-import type { MasterProfile } from "@/types";
+import { categories, getAllMastersWithProfiles } from "@/lib/mock/data";
+import { DISTRICTS } from "@/constants";
 
 /* ────────────────────────────────────────────────────────────────────────────
    Stars Component
@@ -136,15 +133,8 @@ function MasterCard({ master, index }: { master: ReturnType<typeof getAllMasters
    ════════════════════════════════════════════════════════════════════════════ */
 export default function HomePage() {
   const router = useRouter();
-  const { currentUser } = useStore();
   const [searchCategory, setSearchCategory] = useState("");
-  const [searchRegion, setSearchRegion] = useState("");
-  const [searchDistrict, setSearchDistrict] = useState("");
-
-  const masterProfile = useMemo(() => {
-    if (currentUser?.role !== "master") return null;
-    return getMasterWithProfile(currentUser.id)?.profile ?? null;
-  }, [currentUser]);
+  const [searchLocation, setSearchLocation] = useState("");
 
   const allMasters = useMemo(() => getAllMastersWithProfiles(), []);
   const topMasters = useMemo(
@@ -152,14 +142,11 @@ export default function HomePage() {
     [allMasters]
   );
 
-  const regionDistricts = REGIONS.find(r => r.name === searchRegion)?.districts ?? [];
-
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     const params = new URLSearchParams();
     if (searchCategory) params.set("category", searchCategory);
-    if (searchRegion) params.set("region", searchRegion);
-    if (searchDistrict) params.set("district", searchDistrict);
+    if (searchLocation) params.set("district", searchLocation);
     router.push(`/search?${params.toString()}`);
   }
 
@@ -181,19 +168,19 @@ export default function HomePage() {
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-32 text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full bg-white/[0.07] backdrop-blur-sm border border-white/[0.1] text-brand-400 text-xs sm:text-sm font-medium mb-8 sm:mb-10 animate-fade-in">
-            <span className="w-2 h-2 bg-brand-400 rounded-full animate-pulse-soft shrink-0" />
+          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.07] backdrop-blur-sm border border-white/[0.1] text-brand-400 text-sm font-medium mb-10 animate-fade-in">
+            <span className="w-2 h-2 bg-brand-400 rounded-full animate-pulse-soft" />
             O&apos;zbekistondagi #1 ustalar platformasi
           </div>
 
           {/* Heading */}
-          <h1 className="text-[2rem] sm:text-5xl md:text-[3.5rem] lg:text-6xl font-extrabold text-white leading-[1.15] tracking-tight animate-slide-up">
+          <h1 className="text-4xl sm:text-5xl md:text-[3.5rem] lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight animate-slide-up">
             Kerakli ustani top,{" "}
             <span className="relative inline-block">
               <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(135deg, #00C896, #34D399, #2DD4BF)" }}>
                 qisqa vaqtda ishingizni bitiring
               </span>
-              <svg className="absolute -bottom-2 left-0 w-full hidden sm:block" viewBox="0 0 400 12" fill="none">
+              <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 400 12" fill="none">
                 <path d="M2 8 Q100 2 200 8 Q300 14 398 8" stroke="url(#hero-grad)" strokeWidth="3" strokeLinecap="round" />
                 <defs><linearGradient id="hero-grad" x1="0" y1="0" x2="1" y2="0">
                   <stop offset="0%" stopColor="#00C896" /><stop offset="100%" stopColor="#2DD4BF" />
@@ -208,53 +195,34 @@ export default function HomePage() {
 
           {/* Search Bar — Glassmorphism */}
           <form onSubmit={handleSearch}
-            className="mt-12 max-w-3xl mx-auto flex flex-col gap-3 animate-slide-up" style={{ animationDelay: "0.2s" }}>
-
-            {/* Row 1: Category + Region + Button */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg pointer-events-none">🔧</span>
-                <select value={searchCategory} onChange={(e) => setSearchCategory(e.target.value)}
-                  className="w-full h-14 pl-11 pr-4 rounded-2xl bg-white/[0.08] backdrop-blur-md text-white border border-white/[0.12] focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/40 transition-all text-sm appearance-none cursor-pointer">
-                  <option value="" className="text-gray-900 bg-white">Barcha kategoriyalar</option>
-                  {categories.map((c) => <option key={c.id} value={c.id} className="text-gray-900 bg-white">{c.icon} {c.name}</option>)}
-                </select>
-              </div>
-
-              <div className="relative flex-1">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg pointer-events-none">🗺️</span>
-                <select value={searchRegion}
-                  onChange={(e) => { setSearchRegion(e.target.value); setSearchDistrict(""); }}
-                  className="w-full h-14 pl-11 pr-4 rounded-2xl bg-white/[0.08] backdrop-blur-md text-white border border-white/[0.12] focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/40 transition-all text-sm appearance-none cursor-pointer">
-                  <option value="" className="text-gray-900 bg-white">Barcha viloyatlar</option>
-                  {REGIONS.map((r) => <option key={r.name} value={r.name} className="text-gray-900 bg-white">{r.name}</option>)}
-                </select>
-              </div>
-
-              <button type="submit"
-                className="h-14 px-8 rounded-2xl font-semibold text-white text-sm whitespace-nowrap transition-all duration-200 active:scale-[0.97]"
-                style={{ background: "linear-gradient(135deg, #00C896, #00A87E)", boxShadow: "0 4px 20px rgba(0,200,150,0.3)" }}
-                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 6px 28px rgba(0,200,150,0.45)"; e.currentTarget.style.transform = "scale(1.02)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,200,150,0.3)"; e.currentTarget.style.transform = "scale(1)"; }}>
-                🔍 Qidirish
-              </button>
+            className="mt-12 flex flex-col sm:flex-row gap-3 max-w-3xl mx-auto animate-slide-up" style={{ animationDelay: "0.2s" }}>
+            <div className="relative flex-1">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg pointer-events-none">🔧</span>
+              <select value={searchCategory} onChange={(e) => setSearchCategory(e.target.value)}
+                className="w-full h-14 pl-11 pr-4 rounded-2xl bg-white/[0.08] backdrop-blur-md text-white border border-white/[0.12] focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/40 transition-all text-sm appearance-none cursor-pointer">
+                <option value="" className="text-gray-900 bg-white">Barcha kategoriyalar</option>
+                {categories.map((c) => <option key={c.id} value={c.id} className="text-gray-900 bg-white">{c.icon} {c.name}</option>)}
+              </select>
             </div>
-
-            {/* Row 2: District — only shown when region is selected */}
-            {searchRegion && (
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg pointer-events-none">📍</span>
-                <select value={searchDistrict} onChange={(e) => setSearchDistrict(e.target.value)}
-                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-white/[0.08] backdrop-blur-md text-white border border-white/[0.12] focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/40 transition-all text-sm appearance-none cursor-pointer">
-                  <option value="" className="text-gray-900 bg-white">Barcha tumanlar ({regionDistricts.length} ta)</option>
-                  {regionDistricts.map((d) => <option key={d} value={d} className="text-gray-900 bg-white">{d}</option>)}
-                </select>
-              </div>
-            )}
+            <div className="relative flex-1">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg pointer-events-none">📍</span>
+              <select value={searchLocation} onChange={(e) => setSearchLocation(e.target.value)}
+                className="w-full h-14 pl-11 pr-4 rounded-2xl bg-white/[0.08] backdrop-blur-md text-white border border-white/[0.12] focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/40 transition-all text-sm appearance-none cursor-pointer">
+                <option value="" className="text-gray-900 bg-white">Barcha tumanlar</option>
+                {DISTRICTS.map((d) => <option key={d} value={d} className="text-gray-900 bg-white">{d}</option>)}
+              </select>
+            </div>
+            <button type="submit"
+              className="h-14 px-8 rounded-2xl font-semibold text-white text-sm whitespace-nowrap transition-all duration-200 active:scale-[0.97]"
+              style={{ background: "linear-gradient(135deg, #00C896, #00A87E)", boxShadow: "0 4px 20px rgba(0,200,150,0.3)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 6px 28px rgba(0,200,150,0.45)"; e.currentTarget.style.transform = "scale(1.02)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,200,150,0.3)"; e.currentTarget.style.transform = "scale(1)"; }}>
+              🔍 Qidirish
+            </button>
           </form>
 
           {/* Stats */}
-          <div className="mt-12 sm:mt-16 flex items-center justify-center gap-6 sm:gap-20 animate-slide-up" style={{ animationDelay: "0.3s" }}>
+          <div className="mt-16 flex items-center justify-center gap-10 sm:gap-20 animate-slide-up" style={{ animationDelay: "0.3s" }}>
             {[
               { value: "500", suffix: "+", label: "Ustalar" },
               { value: "10K", suffix: "+", label: "Mijozlar" },
@@ -262,7 +230,7 @@ export default function HomePage() {
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <AnimatedCounter value={s.value} suffix={s.suffix} />
-                <div className="text-xs sm:text-sm text-gray-500 mt-1 font-medium">{s.label}</div>
+                <div className="text-sm text-gray-500 mt-1 font-medium">{s.label}</div>
               </div>
             ))}
           </div>
@@ -273,25 +241,6 @@ export default function HomePage() {
           <svg viewBox="0 0 1440 50" fill="none"><path d="M0 50 C360 0 1080 0 1440 50 L1440 50 L0 50 Z" fill="#F8FAFB" /></svg>
         </div>
       </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          1.5 MASTER DASHBOARD BANNER — only for master users
-      ═══════════════════════════════════════════════════════════════ */}
-      {currentUser?.role === "master" && masterProfile && (
-        <section className="py-6">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
-                Usta Dashboard
-              </span>
-            </div>
-            <ProfileCompletionBanner
-              user={currentUser}
-              profile={masterProfile as Partial<MasterProfile>}
-            />
-          </div>
-        </section>
-      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           2. CATEGORIES — Unique colors per category

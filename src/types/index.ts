@@ -19,7 +19,6 @@ export interface Location {
   lng: number;
   address: string;
   city: string;
-  region: string;
   district: string;
 }
 
@@ -41,8 +40,6 @@ export interface MasterProfile {
   portfolio: string[]; // image URLs
   isAvailable: boolean;
   experience: number; // years
-  hourlyRate: number; // so'm/soat
-  workHours: string; // e.g. "Du-Sha: 08:00-18:00"
 }
 
 export interface Review {
