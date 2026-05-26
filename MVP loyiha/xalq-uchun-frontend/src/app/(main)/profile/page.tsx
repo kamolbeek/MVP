@@ -45,7 +45,7 @@ function ClientProfile(){
   const { currentUser, updateProfile, changePassword, deleteAccount, savedMasterIds, removeSavedMaster, notificationSettings, toggleNotificationSetting } = useStore();
   const [tab,setTab]=useState<"reviews"|"saved"|"settings">("reviews");
   const myReviews=useMemo(()=>reviews.filter(r=>r.clientId===currentUser?.id),[currentUser]);
-  const savedMasters=useMemo(()=>getAllMastersWithProfiles().filter(m=>savedMasterIds.includes(m.id)),[savedMasterIds]);
+  const savedMasters=useMemo(()=>getAllMastersWithProfiles().filter(m=>(savedMasterIds || []).includes(m.id)),[savedMasterIds]);
   
   // Edit states
   const [editName,setEditName]=useState(currentUser?.name||"");
@@ -197,8 +197,8 @@ function ClientProfile(){
               ]).map(item=>(
                 <label key={item.key} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50 cursor-pointer mb-2" onClick={()=>toggleNotificationSetting(item.key)}>
                   <div><p className="font-semibold text-sm text-[#0A0A0A]">{item.label}</p></div>
-                  <div className={`relative w-11 h-6 rounded-full transition-colors ${notificationSettings[item.key]?"bg-brand-500":"bg-gray-300"}`}>
-                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${notificationSettings[item.key]?"translate-x-5":"translate-x-0"}`}/>
+                  <div className={`relative w-11 h-6 rounded-full transition-colors ${(notificationSettings && notificationSettings[item.key])?"bg-brand-500":"bg-gray-300"}`}>
+                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${(notificationSettings && notificationSettings[item.key])?"translate-x-5":"translate-x-0"}`}/>
                   </div>
                 </label>
               ))}
@@ -288,7 +288,7 @@ function MasterProfile(){
 
   // Merge default + user added portfolio
   const defaultPortfolioItems = [{id:"d-1",title:"Namuna ish #1",description:"Ta'mirlash xizmati",color:"from-brand-400 to-teal-500"},{id:"d-2",title:"Namuna ish #2",description:"Ta'mirlash xizmati",color:"from-violet-400 to-purple-500"},{id:"d-3",title:"Namuna ish #3",description:"Ta'mirlash xizmati",color:"from-orange-400 to-amber-500"}];
-  const allPortfolio = [...defaultPortfolioItems, ...portfolioItems];
+  const allPortfolio = [...defaultPortfolioItems, ...(portfolioItems || [])];
 
   return(
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in">
@@ -431,8 +431,8 @@ function MasterProfile(){
             <div><h3 className="text-lg font-bold text-[#0A0A0A] mb-4">Bildirishnomalar</h3>
               <label className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50 cursor-pointer" onClick={()=>toggleNotificationSetting("newOrders")}>
                 <div><p className="font-semibold text-sm text-[#0A0A0A]">Yangi buyurtmalar</p><p className="text-xs text-[#6B7280]">Mijozlardan yangi so&apos;rovlar kelsa xabar berish</p></div>
-                <div className={`relative w-11 h-6 rounded-full transition-colors ${notificationSettings.newOrders?"bg-brand-500":"bg-gray-300"}`}>
-                  <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${notificationSettings.newOrders?"translate-x-5":"translate-x-0"}`}/>
+                <div className={`relative w-11 h-6 rounded-full transition-colors ${(notificationSettings && notificationSettings.newOrders)?"bg-brand-500":"bg-gray-300"}`}>
+                  <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${(notificationSettings && notificationSettings.newOrders)?"translate-x-5":"translate-x-0"}`}/>
                 </div>
               </label>
             </div>
