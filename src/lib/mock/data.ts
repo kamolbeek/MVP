@@ -146,18 +146,147 @@ export const reviews: Review[] = [
 ];
 
 // ==========================================
+// 420 Generated Masters (14 viloyat × 10 kasb × 3 master)
+// ==========================================
+
+const _FIRST: string[] = [
+  "Jasur","Bobur","Sardor","Sherzod","Anvar","Dilshod","Rustam","Farhod","Otabek","Nodir",
+  "Ulugbek","Sanjar","Behruz","Eldor","Kamol","Timur","Mirzo","Alisher","Hamza","Doniyor",
+  "Zafar","Jahongir","Mansur","Ravshan","Bahodir","Ilhom","Murod","Nozim","Orif","Parviz",
+  "Rauf","Suxrob","Tohir","Umid","Xurshid","Azizjon","Bekzod","Dostonbek","Elbek","Farrux",
+  "Komil","Laziz","Muzaffar","Nuriddin","Oybek","Sarvar","Baxtiyor","Davron","Erkin","Furqat",
+  "Islom","Javlon","Mahmudbek","Navruz","Temurali","Shohruh","Ibrohim","Hamid","Lochinbek","Nurbek",
+];
+
+const _LAST: string[] = [
+  "Karimov","Rahimov","Xasanov","Yusupov","Mirzayev","Toshmatov","Ergashev","Aliyev","Nazarov","Sobirov",
+  "Qodirov","Umarov","Abdullayev","Tursunov","Xolmatov","Botirov","Haydarov","Yo'ldoshev","Zokirov","Tillayev",
+  "Mamatov","Holiqov","Ismoilov","Jalolov","Kenjayev","Latipov","Mo'minov","Nishonov","Ortiqov","Qosimov",
+  "Sotvoldiyev","Tojimatov","Usmonov","Valiyev","Xo'jayev","Yunusov","Zaripov","Atajonov","Baxtiyorov","Choriyev",
+  "Dusmatov","Eshmatov","Fayzullayev","G'aniyev","Hamidov","Ibragimov","Normatov","Raximov","Sultonov","Tojiboyev",
+];
+
+interface _RegionGen { region: string; districts: [string, string, string]; lat: number; lng: number; }
+const _REGIONS: _RegionGen[] = [
+  // district[0]=cat-1,4,7,10 | district[1]=cat-2,5,8 | district[2]=cat-3,6,9
+  { region:"Toshkent shahri",         districts:["Chilonzor","Yunusobod","Mirzo Ulug'bek"],   lat:41.283,lng:69.204 },
+  { region:"Toshkent viloyati",        districts:["Yangiyo'l","Qibray","Zangiota"],            lat:41.113,lng:69.045 },
+  { region:"Samarqand viloyati",       districts:["Samarqand tumani","Urgut","Kattaqo'rg'on"], lat:39.649,lng:66.975 },
+  { region:"Farg'ona viloyati",        districts:["Farg'ona tumani","Rishton","Oltiariq"],      lat:40.384,lng:71.787 },
+  { region:"Andijon viloyati",         districts:["Asaka","Shahrixon","Marhamat"],              lat:40.636,lng:72.238 },
+  { region:"Namangan viloyati",        districts:["Namangan tumani","Pop","Chortoq"],           lat:40.990,lng:71.679 },
+  { region:"Buxoro viloyati",          districts:["Buxoro tumani","G'ijduvon","Romitan"],       lat:39.767,lng:64.421 },
+  { region:"Xorazm viloyati",          districts:["Urganch tumani","Xiva tumani","Shovot"],     lat:41.551,lng:60.621 },
+  { region:"Qashqadaryo viloyati",     districts:["Shahrisabz tumani","Qarshi tumani","Kitob"], lat:39.137,lng:66.877 },
+  { region:"Surxondaryo viloyati",     districts:["Termiz tumani","Denov","Boysun"],            lat:37.224,lng:67.278 },
+  { region:"Jizzax viloyati",          districts:["Jizzax tumani","Zafarobod","G'allaorol"],    lat:40.121,lng:67.835 },
+  { region:"Sirdaryo viloyati",        districts:["Guliston tumani","Boyovut","Sardoba"],       lat:40.489,lng:68.784 },
+  { region:"Navoiy viloyati",          districts:["Navoiy tumani","Nurota","Karmana"],          lat:40.089,lng:65.378 },
+  { region:"Qoraqalpog'iston Respublikasi", districts:["Nukus tumani","Beruniy","Qo'ng'irot"], lat:42.461,lng:59.613 },
+];
+
+const _BIOS: Record<string,(d:string,e:number)=>string> = {
+  "cat-1": (d,e)=>`${e} yillik santexnik. ${d}da quvur, kran va sanitariya ishlarini professional bajaraman.`,
+  "cat-2": (d,e)=>`${d}da elektr montaj va ta'mirlash. ${e} yildan beri kvartira va ofislarga xizmat ko'rsataman.`,
+  "cat-3": (d,e)=>`Duradgorlik ustasi — ${d}. Mebel yasash, eshik-deraza ta'miri bo'yicha ${e} yil tajriba.`,
+  "cat-4": (d,e)=>`Full-stack dasturchi. ${d}dan ishlaydi. Veb va mobil ilovalar yaratish bo'yicha ${e} yillik tajriba.`,
+  "cat-5": (d,e)=>`${d} videografi. To'y, tadbir va reklama videolarini ${e} yildan beri professional suratga olaman.`,
+  "cat-6": (d,e)=>`Grafik dizayner — ${d}. Logotip, brending va UI dizayn bo'yicha ${e} yil ish tajribasi.`,
+  "cat-7": (d,e)=>`${d}da bo'yoqchi. Kvartira va ofislarni dekorativ bo'yash bo'yicha ${e} yillik tajriba.`,
+  "cat-8": (d,e)=>`Payvandchi usta — ${d}. Metall konstruksiyalar, darvoza va panjaralar bo'yicha ${e} yil.`,
+  "cat-9": (d,e)=>`${d}da chilangar xizmati. Qulf, kalit va eshik ochish bo'yicha ${e} yildan beri ishlayman.`,
+  "cat-10":(d,e)=>`${d} repetitori. Matematika va fizikadan ${e} yildan beri DTM va maktab o'quvchilarini tayyorlayman.`,
+};
+
+const _RATES: Record<string,number[]> = {
+  "cat-1":[60000,70000,80000,90000,100000],
+  "cat-2":[70000,85000,100000,110000,120000],
+  "cat-3":[80000,100000,120000,130000,150000],
+  "cat-4":[150000,180000,200000,250000,300000],
+  "cat-5":[100000,130000,150000,180000,200000],
+  "cat-6":[100000,130000,150000,180000,200000],
+  "cat-7":[50000,60000,70000,75000,80000],
+  "cat-8":[80000,90000,100000,110000,120000],
+  "cat-9":[50000,60000,65000,70000,80000],
+  "cat-10":[60000,70000,80000,90000,100000],
+};
+
+const _HOURS = ["Du-Sha: 08:00-18:00","Du-Ju: 09:00-20:00","Har kuni: 08:00-22:00","Du-Sha: 09:00-18:00","Har kuni: 09:00-21:00"];
+const _CAT_IDS = ["cat-1","cat-2","cat-3","cat-4","cat-5","cat-6","cat-7","cat-8","cat-9","cat-10"];
+
+function _buildGeneratedMasters():{users:User[];profiles:MasterProfile[]} {
+  const users:User[] = [];
+  const profiles:MasterProfile[] = [];
+  let idx = 11;
+  let ni = 0;
+
+  _REGIONS.forEach(({ region, districts, lat, lng }, ri) => {
+    _CAT_IDS.forEach((catId, ci) => {
+      const district = districts[ci % 3];
+      for (let k = 0; k < 3; k++) {
+        const fn = _FIRST[ni % _FIRST.length];
+        const ln = _LAST[(ni * 7 + Math.floor(ni / _FIRST.length) * 11) % _LAST.length];
+        const name = `${fn} ${ln}`;
+        const id = `m-${idx}`;
+        const exp = 1 + ((ri * 30 + ci * 3 + k) % 14);
+        const rating = parseFloat((4.0 + (ni % 10) * 0.1).toFixed(1));
+        const reviewCount = 5 + ((ri * 13 + ci * 7 + k * 3) % 56);
+        const rates = _RATES[catId];
+        const hourlyRate = rates[(ni + ri + ci) % rates.length];
+        const isAvailable = (ni + ri + ci) % 5 !== 0;
+        const pfx = [90,91,93,94,95,97,98,99][idx % 8];
+        const phone = `+998${pfx}${String(10000000 + idx).slice(1)}`;
+        const month = String(1 + ni % 9).padStart(2,"0");
+        const day   = String(10 + ni % 19).padStart(2,"0");
+
+        users.push({
+          id, name, phone,
+          email:`${fn.toLowerCase()}${idx}@mail.uz`,
+          role:"master",
+          avatar:`https://api.dicebear.com/7.x/avataaars/svg?seed=${fn}${idx}`,
+          createdAt:`2024-${month}-${day}`,
+        });
+        profiles.push({
+          id:`mp-${idx}`, userId:id,
+          bio:_BIOS[catId](district, exp),
+          categories:[catId],
+          rating, reviewCount, isAvailable, experience:exp,
+          hourlyRate,
+          workHours:_HOURS[(ri + ci + k) % _HOURS.length],
+          location:{
+            lat: parseFloat((lat + (ni % 10) * 0.005).toFixed(4)),
+            lng: parseFloat((lng + (ni % 10) * 0.005).toFixed(4)),
+            address:`${district}, ${1 + ni % 99}-uy`,
+            city: region.split(" ")[0],
+            region, district,
+          },
+          portfolio:[],
+        });
+        idx++; ni++;
+      }
+    });
+  });
+  return { users, profiles };
+}
+
+const { users: _genUsers, profiles: _genProfiles } = _buildGeneratedMasters();
+
+export const allMasterUsers: User[]           = [...masterUsers,   ..._genUsers];
+export const allMasterProfiles: MasterProfile[] = [...masterProfiles, ..._genProfiles];
+
+// ==========================================
 // Helper Functions
 // ==========================================
 export function getMasterWithProfile(masterId: string) {
-  const user = masterUsers.find((u) => u.id === masterId);
-  const profile = masterProfiles.find((p) => p.userId === masterId);
+  const user    = allMasterUsers.find((u) => u.id === masterId);
+  const profile = allMasterProfiles.find((p) => p.userId === masterId);
   if (!user || !profile) return null;
   return { ...user, profile };
 }
 
 export function getAllMastersWithProfiles() {
-  return masterUsers.map((user) => {
-    const profile = masterProfiles.find((p) => p.userId === user.id)!;
+  return allMasterUsers.map((user) => {
+    const profile = allMasterProfiles.find((p) => p.userId === user.id)!;
     return { ...user, profile };
   });
 }

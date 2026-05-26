@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { masterUsers } from "@/lib/mock/data";
+import { allMasterUsers } from "@/lib/mock/data";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://ustam.uz";
@@ -32,7 +32,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  const masterRoutes: MetadataRoute.Sitemap = masterUsers.map((master) => ({
+  const masterRoutes: MetadataRoute.Sitemap = allMasterUsers.map((master) => ({
     url: `${baseUrl}/master/${master.id}`,
     lastModified: new Date(master.createdAt),
     changeFrequency: "weekly",
