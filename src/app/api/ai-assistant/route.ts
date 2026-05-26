@@ -6,14 +6,20 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(req: Request) {
   try {
-    const { message, imageBase64, imageMimeType } = (await req.json()) as {
-      message?: string;
-      imageBase64?: string;
-      imageMimeType?: string;
-    };
+    const { message, imageBase64, imageMimeType, audioBase64, audioMimeType } =
+      (await req.json()) as {
+        message?: string;
+        imageBase64?: string;
+        imageMimeType?: string;
+        audioBase64?: string;
+        audioMimeType?: string;
+      };
 
-    if (!message && !imageBase64) {
-      return NextResponse.json({ error: "Xabar yoki rasm kerak" }, { status: 400 });
+    if (!message && !imageBase64 && !audioBase64) {
+      return NextResponse.json(
+        { error: "Xabar, rasm yoki audio kerak" },
+        { status: 400 }
+      );
     }
 
     const model = genAI.getGenerativeModel({ model: "gemini-flash-lite-latest" });
@@ -22,7 +28,13 @@ export async function POST(req: Request) {
       .map((c) => `  "${c.id}": ${c.name} (${getCategoryHints(c.id)})`)
       .join("\n");
 
-    const prompt = `Sen USTAM platformasining AI yordamchisisisan. Foydalanuvchining muammosini tahlil qilib, quyidagi kategoriyalardan birini tanlash:
+    const userContext = message
+      ? `Foydalanuvchi muammosi: ${message}`
+      : audioBase64
+      ? "Foydalanuvchi audio yozuvida muammosini o'zbek tilida tasvirlab berdi. Audio tarkibidagi muammoni diqqat bilan eshit va tahlil qil."
+      : "Rasmda ko'rinadigan muammoni tahlil qil";
+
+    const prompt = `Sen USTAM platformasining AI yordamchisisisan. Foydalanuvchining muammosini tahlil qilib, quyidagi kategoriyalardan birini tanla:
 
 ${categoryList}
 
@@ -36,12 +48,24 @@ FAQAT quyidagi JSON formatda javob ber, boshqa matn yozma:
 
 Urgency qiymatlari: "low" (shoshilmasa ham bo'ladi), "medium" (tez orada kerak), "high" (tezkor yordam kerak).
 
-Foydalanuvchi muammosi: ${message || "Rasmda ko'rinadigan muammoni tahlil qil"}`;
+${userContext}`;
 
     const parts: Part[] = [];
+
     if (imageBase64) {
-      parts.push({ inlineData: { data: imageBase64, mimeType: imageMimeType || "image/jpeg" } });
+      parts.push({
+        inlineData: { data: imageBase64, mimeType: imageMimeType || "image/jpeg" },
+      });
     }
+
+    if (audioBase64) {
+      // Normalize MIME type: strip codec params Gemini doesn't accept
+      const normalizedAudioMime = (audioMimeType || "audio/webm").split(";")[0];
+      parts.push({
+        inlineData: { data: audioBase64, mimeType: normalizedAudioMime },
+      });
+    }
+
     parts.push({ text: prompt });
 
     const result = await model.generateContent(parts);
@@ -49,7 +73,10 @@ Foydalanuvchi muammosi: ${message || "Rasmda ko'rinadigan muammoni tahlil qil"}`
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {
-      return NextResponse.json({ error: "AI javobi noto'g'ri formatda" }, { status: 500 });
+      return NextResponse.json(
+        { error: "AI javobi noto'g'ri formatda" },
+        { status: 500 }
+      );
     }
 
     const aiData = JSON.parse(jsonMatch[0]) as {
@@ -78,21 +105,24 @@ Foydalanuvchi muammosi: ${message || "Rasmda ko'rinadigan muammoni tahlil qil"}`
     });
   } catch (err) {
     console.error("AI assistant error:", err);
-    return NextResponse.json({ error: "Xizmat vaqtincha ishlamayapti" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Xizmat vaqtincha ishlamayapti" },
+      { status: 500 }
+    );
   }
 }
 
 function getCategoryHints(id: string): string {
   const hints: Record<string, string> = {
-    "cat-1": "quvur, kran, vannaxona, hojatxona, suv oqishi",
-    "cat-2": "tok, chiroq, rozetka, simlash, qisqa tutashuv",
-    "cat-3": "eshik, deraza, mebel, yog'och, parket",
-    "cat-4": "veb-sayt, ilova, dastur, kompyuter, IT",
-    "cat-5": "foto, video, to'y, tadbir, suratga olish",
-    "cat-6": "dizayn, logotip, brending, UI, grafika",
-    "cat-7": "bo'yash, devor, potolok, kraska, dekor",
-    "cat-8": "payvandlash, metall, temir, darvoza, panjara",
-    "cat-9": "qulf, kalit, seyf, eshik ochish",
+    "cat-1":  "quvur, kran, vannaxona, hojatxona, suv oqishi",
+    "cat-2":  "tok, chiroq, rozetka, simlash, qisqa tutashuv",
+    "cat-3":  "eshik, deraza, mebel, yog'och, parket",
+    "cat-4":  "veb-sayt, ilova, dastur, kompyuter, IT",
+    "cat-5":  "foto, video, to'y, tadbir, suratga olish",
+    "cat-6":  "dizayn, logotip, brending, UI, grafika",
+    "cat-7":  "bo'yash, devor, potolok, kraska, dekor",
+    "cat-8":  "payvandlash, metall, temir, darvoza, panjara",
+    "cat-9":  "qulf, kalit, seyf, eshik ochish",
     "cat-10": "dars, repetitor, matematika, fizika, DTM",
   };
   return hints[id] ?? "";

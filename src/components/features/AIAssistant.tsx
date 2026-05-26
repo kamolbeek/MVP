@@ -10,11 +10,9 @@ interface Master {
   avatar: string;
   profile: {
     rating: number;
-    reviewCount: number;
     hourlyRate: number;
     isAvailable: boolean;
     location: { district: string };
-    experience: number;
   };
 }
 
@@ -34,11 +32,24 @@ const URGENCY = {
   high:   { label: "Tezkor!",          cls: "bg-rose-50 text-rose-500",   dot: "bg-rose-400 animate-pulse" },
 } as const;
 
-function getSR(): (new () => unknown) | null {
-  if (typeof window === "undefined") return null;
-  return (window as Window & { SpeechRecognition?: new () => unknown; webkitSpeechRecognition?: new () => unknown }).SpeechRecognition
-    ?? (window as Window & { webkitSpeechRecognition?: new () => unknown }).webkitSpeechRecognition
-    ?? null;
+function getAudioMimeType(): string {
+  if (typeof window === "undefined" || !window.MediaRecorder) return "audio/webm";
+  const preferred = [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/ogg;codecs=opus",
+    "audio/ogg",
+    "audio/mp4",
+  ];
+  for (const t of preferred) {
+    if (MediaRecorder.isTypeSupported(t)) return t;
+  }
+  return "";
+}
+
+function fmtTime(s: number) {
+  const m = Math.floor(s / 60);
+  return `${m}:${String(s % 60).padStart(2, "0")}`;
 }
 
 const CHIPS = [
@@ -57,13 +68,31 @@ export default function AIAssistant() {
   const [result,        setResult]        = useState<AIResult | null>(null);
   const [error,         setError]         = useState("");
   const [isRecording,   setIsRecording]   = useState(false);
-  const [hasSR,         setHasSR]         = useState(false);
+  const [recSeconds,    setRecSeconds]    = useState(0);
+  const [hasMic,        setHasMic]        = useState(false);
 
-  const fileRef     = useRef<HTMLInputElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const recogRef    = useRef<unknown>(null);
+  const fileRef      = useRef<HTMLInputElement>(null);
+  const textareaRef  = useRef<HTMLTextAreaElement>(null);
+  const mrRef        = useRef<MediaRecorder | null>(null);
+  const chunksRef    = useRef<Blob[]>([]);
+  const msgRef       = useRef(message); // stable ref for onstop closure
+  msgRef.current = message;
 
-  useEffect(() => { setHasSR(!!getSR()); }, []);
+  // check mic support
+  useEffect(() => {
+    setHasMic(
+      typeof window !== "undefined" &&
+      !!navigator.mediaDevices?.getUserMedia &&
+      !!window.MediaRecorder
+    );
+  }, []);
+
+  // recording timer
+  useEffect(() => {
+    if (!isRecording) { setRecSeconds(0); return; }
+    const id = setInterval(() => setRecSeconds((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [isRecording]);
 
   // auto-resize textarea
   useEffect(() => {
@@ -96,35 +125,69 @@ export default function AIAssistant() {
     if (fileRef.current) fileRef.current.value = "";
   }
 
-  const toggleRecording = useCallback(() => {
-    const SR = getSR();
-    if (!SR) return;
+  // ── Audio submit ──────────────────────────────────────────────
+  const submitAudio = useCallback(async (blob: Blob, mimeType: string) => {
+    setLoading(true);
+    setError("");
+    setResult(null);
+    try {
+      const buf = await blob.arrayBuffer();
+      let bin = "";
+      new Uint8Array(buf).forEach((b) => (bin += String.fromCharCode(b)));
+      const audioBase64 = btoa(bin);
+
+      const res = await fetch("/api/ai-assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: msgRef.current.trim() || undefined,
+          audioBase64,
+          audioMimeType: mimeType,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Xato yuz berdi");
+      setResult(data as AIResult);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Audio tahlil qilishda xato");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ── Toggle recording ──────────────────────────────────────────
+  const toggleRecording = useCallback(async () => {
     if (isRecording) {
-      (recogRef.current as { stop(): void })?.stop();
-      setIsRecording(false);
+      mrRef.current?.stop();
       return;
     }
-    const recog = new SR() as {
-      lang: string; continuous: boolean; interimResults: boolean;
-      onresult: ((e: { results: { length: number; [k: number]: { [j: number]: { transcript: string } } } }) => void) | null;
-      onerror: (() => void) | null;
-      onend: (() => void) | null;
-      start(): void; stop(): void;
-    };
-    recog.lang = "uz-UZ";
-    recog.continuous = false;
-    recog.interimResults = true;
-    recog.onresult = (e) => {
-      const text = Array.from({ length: e.results.length }, (_, i) => e.results[i][0].transcript).join("");
-      setMessage(text);
-    };
-    recog.onerror = () => setIsRecording(false);
-    recog.onend   = () => setIsRecording(false);
-    recogRef.current = recog;
-    recog.start();
-    setIsRecording(true);
-  }, [isRecording]);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = getAudioMimeType();
+      const mr = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      chunksRef.current = [];
 
+      mr.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      mr.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        setIsRecording(false);
+        const finalMime = mr.mimeType || mimeType || "audio/webm";
+        const blob = new Blob(chunksRef.current, { type: finalMime });
+        if (blob.size > 0) submitAudio(blob, finalMime);
+      };
+
+      mrRef.current = mr;
+      mr.start(250); // collect chunks every 250ms
+      setIsRecording(true);
+    } catch {
+      setError("Mikrofonga ruxsat berilmadi");
+    }
+  }, [isRecording, submitAudio]);
+
+  // ── Text / image submit ───────────────────────────────────────
   async function handleSubmit() {
     if (loading || (!message.trim() && !imageFile)) return;
     setLoading(true);
@@ -164,7 +227,7 @@ export default function AIAssistant() {
     if (fileRef.current) fileRef.current.value = "";
   }
 
-  const canSend = !loading && (!!message.trim() || !!imageFile);
+  const canSend = !loading && !isRecording && (!!message.trim() || !!imageFile);
 
   return (
     <>
@@ -219,7 +282,7 @@ export default function AIAssistant() {
               className="w-9 h-9 rounded-[14px] flex items-center justify-center shadow-sm"
               style={{ background: "linear-gradient(145deg, #00D4A0, #00A878)" }}
             >
-              <svg className="w-4.5 h-4.5 w-[18px] h-[18px] text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-[18px] h-[18px] text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
@@ -287,11 +350,10 @@ export default function AIAssistant() {
                       Qanday yordam kerak?
                     </p>
                     <p className="text-[13px] text-gray-400 mt-1.5 leading-relaxed max-w-[240px]">
-                      Muammoni yozing, gapiring yoki rasm yuboring — eng mos ustani topamiz
+                      Yozing, gapiring yoki rasm yuboring — AI eng mos ustani topadi
                     </p>
                   </div>
                 </div>
-
                 <div className="w-full space-y-2">
                   {CHIPS.map(({ icon, text }) => (
                     <button
@@ -380,9 +442,7 @@ export default function AIAssistant() {
                 {result.masters.length > 0 ? (
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <p className="text-[13px] font-semibold text-gray-900">
-                        Tavsiya etilgan ustalar
-                      </p>
+                      <p className="text-[13px] font-semibold text-gray-900">Tavsiya etilgan ustalar</p>
                       <Link
                         href={`/search?category=${result.categoryId}`}
                         onClick={() => setOpen(false)}
@@ -470,7 +530,7 @@ export default function AIAssistant() {
           <div className="h-px bg-gray-100 mb-3" />
 
           {/* Image preview chip */}
-          {imagePreview && (
+          {imagePreview && !isRecording && (
             <div className="flex items-center gap-2.5 mb-2.5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -499,105 +559,154 @@ export default function AIAssistant() {
           <div
             className={`flex items-end gap-1.5 rounded-2xl px-4 pt-3 pb-2.5 transition-all duration-200 ${
               isRecording
-                ? "bg-rose-50 ring-2 ring-rose-300/70"
+                ? "ring-2 ring-rose-300/80"
                 : "bg-gray-100 ring-2 ring-transparent focus-within:bg-white focus-within:ring-emerald-300/60 focus-within:shadow-sm"
             }`}
+            style={isRecording ? { background: "linear-gradient(135deg, #fff1f2, #ffe4e6)" } : undefined}
           >
-            <textarea
-              ref={textareaRef}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit();
-                }
-              }}
-              placeholder={isRecording ? "🎙 Gapiring…" : "Muammoni yozing…"}
-              rows={1}
-              disabled={loading}
-              className="flex-1 bg-transparent text-[15px] text-gray-900 placeholder:text-gray-400 resize-none focus:outline-none leading-[1.45] disabled:opacity-50"
-              style={{ minHeight: "22px", maxHeight: "120px" }}
-            />
+            {/* Recording indicator OR textarea */}
+            {isRecording ? (
+              <div className="flex-1 flex items-center gap-3 py-1 min-h-[22px]">
+                {/* animated waveform dots */}
+                <div className="flex items-center gap-[3px]">
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      className="w-[3px] rounded-full bg-rose-400"
+                      style={{
+                        height: `${8 + ((i * 5) % 12)}px`,
+                        animation: `pulse 0.8s ease-in-out ${i * 0.12}s infinite alternate`,
+                      }}
+                    />
+                  ))}
+                </div>
+                <span className="text-[14px] font-medium text-rose-500">
+                  Yozilmoqda… {fmtTime(recSeconds)}
+                </span>
+              </div>
+            ) : (
+              <textarea
+                ref={textareaRef}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit();
+                  }
+                }}
+                placeholder="Muammoni yozing…"
+                rows={1}
+                disabled={loading}
+                className="flex-1 bg-transparent text-[15px] text-gray-900 placeholder:text-gray-400 resize-none focus:outline-none leading-[1.45] disabled:opacity-50"
+                style={{ minHeight: "22px", maxHeight: "120px" }}
+              />
+            )}
 
+            {/* Action icons */}
             <div className="flex items-center gap-0.5 pb-0.5 shrink-0">
-              {/* Mic */}
-              {hasSR && (
+              {isRecording ? (
+                /* Stop button — tap to stop & auto-submit */
                 <button
                   type="button"
                   onClick={toggleRecording}
-                  disabled={loading}
-                  aria-label={isRecording ? "To'xtatish" : "Ovoz yozish"}
-                  className={`relative w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-40 ${
-                    isRecording
-                      ? "text-rose-500"
-                      : "text-gray-400 hover:text-gray-600 hover:bg-gray-200/70"
-                  }`}
+                  aria-label="To'xtatish"
+                  className="relative w-9 h-9 rounded-full flex items-center justify-center bg-rose-500 text-white active:scale-90 transition-all"
+                  style={{ boxShadow: "0 2px 10px rgba(244,63,94,0.4)" }}
                 >
-                  {isRecording && (
-                    <span className="absolute inset-0 rounded-full bg-rose-400/25 animate-ping" />
-                  )}
-                  <svg className="w-[17px] h-[17px] relative" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-                      d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-                      d="M19 10v2a7 7 0 01-14 0v-2M12 19v4m-4 0h8" />
-                  </svg>
+                  <span className="absolute inset-0 rounded-full bg-rose-400/40 animate-ping" />
+                  {/* Stop square */}
+                  <span className="w-3 h-3 rounded-[3px] bg-white relative" />
                 </button>
-              )}
+              ) : (
+                <>
+                  {/* Mic */}
+                  {hasMic && (
+                    <button
+                      type="button"
+                      onClick={toggleRecording}
+                      disabled={loading}
+                      aria-label="Ovoz yozish"
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-200/70 transition-all active:scale-90 disabled:opacity-40"
+                    >
+                      <svg className="w-[17px] h-[17px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+                          d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+                          d="M19 10v2a7 7 0 01-14 0v-2M12 19v4m-4 0h8" />
+                      </svg>
+                    </button>
+                  )}
 
-              {/* Camera */}
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                disabled={loading}
-                aria-label="Rasm tanlash"
-                className="w-9 h-9 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-200/70 transition-all active:scale-90 disabled:opacity-40"
-              >
-                <svg className="w-[17px] h-[17px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </button>
-
-              {/* Send */}
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={!canSend}
-                aria-label="Yuborish"
-                className="w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 ml-0.5"
-                style={
-                  canSend
-                    ? {
-                        background: "linear-gradient(145deg, #00D4A0, #00A878)",
-                        boxShadow: "0 2px 12px rgba(0,200,150,0.35)",
-                      }
-                    : { background: "#E5E7EB" }
-                }
-              >
-                {loading ? (
-                  <svg className="w-3.5 h-3.5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                ) : (
-                  <svg
-                    className={`w-3.5 h-3.5 ${canSend ? "text-white" : "text-gray-400"}`}
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  {/* Camera */}
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={loading}
+                    aria-label="Rasm tanlash"
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-200/70 transition-all active:scale-90 disabled:opacity-40"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                )}
-              </button>
+                    <svg className="w-[17px] h-[17px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </button>
+
+                  {/* Send */}
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={!canSend}
+                    aria-label="Yuborish"
+                    className="w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 ml-0.5"
+                    style={
+                      canSend
+                        ? {
+                            background: "linear-gradient(145deg, #00D4A0, #00A878)",
+                            boxShadow: "0 2px 12px rgba(0,200,150,0.35)",
+                          }
+                        : { background: "#E5E7EB" }
+                    }
+                  >
+                    {loading ? (
+                      <svg className="w-3.5 h-3.5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    ) : (
+                      <svg
+                        className={`w-3.5 h-3.5 ${canSend ? "text-white" : "text-gray-400"}`}
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
+                    )}
+                  </button>
+                </>
+              )}
             </div>
           </div>
+
+          {/* Hint text */}
+          {!isRecording && hasMic && !loading && (
+            <p className="text-center text-[11px] text-gray-300 mt-2">
+              🎤 Mikrofonni bosing va gapiring — AI audio tahlil qiladi
+            </p>
+          )}
         </div>
 
         <input ref={fileRef} type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
       </div>
+
+      {/* Waveform keyframe animation */}
+      <style>{`
+        @keyframes pulse {
+          from { transform: scaleY(0.4); opacity: 0.6; }
+          to   { transform: scaleY(1.2); opacity: 1; }
+        }
+      `}</style>
     </>
   );
 }
