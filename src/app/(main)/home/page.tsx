@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { categories, getAllMastersWithProfiles } from "@/lib/mock/data";
-import { DISTRICTS } from "@/constants";
+import { REGIONS } from "@/constants";
 
 /* ────────────────────────────────────────────────────────────────────────────
    Stars Component
@@ -134,7 +134,8 @@ function MasterCard({ master, index }: { master: ReturnType<typeof getAllMasters
 export default function HomePage() {
   const router = useRouter();
   const [searchCategory, setSearchCategory] = useState("");
-  const [searchLocation, setSearchLocation] = useState("");
+  const [searchRegion, setSearchRegion] = useState("");
+  const [searchDistrict, setSearchDistrict] = useState("");
 
   const allMasters = useMemo(() => getAllMastersWithProfiles(), []);
   const topMasters = useMemo(
@@ -142,11 +143,14 @@ export default function HomePage() {
     [allMasters]
   );
 
+  const regionDistricts = REGIONS.find(r => r.name === searchRegion)?.districts ?? [];
+
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     const params = new URLSearchParams();
     if (searchCategory) params.set("category", searchCategory);
-    if (searchLocation) params.set("district", searchLocation);
+    if (searchRegion) params.set("region", searchRegion);
+    if (searchDistrict) params.set("district", searchDistrict);
     router.push(`/search?${params.toString()}`);
   }
 
@@ -195,30 +199,49 @@ export default function HomePage() {
 
           {/* Search Bar — Glassmorphism */}
           <form onSubmit={handleSearch}
-            className="mt-12 flex flex-col sm:flex-row gap-3 max-w-3xl mx-auto animate-slide-up" style={{ animationDelay: "0.2s" }}>
-            <div className="relative flex-1">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg pointer-events-none">🔧</span>
-              <select value={searchCategory} onChange={(e) => setSearchCategory(e.target.value)}
-                className="w-full h-14 pl-11 pr-4 rounded-2xl bg-white/[0.08] backdrop-blur-md text-white border border-white/[0.12] focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/40 transition-all text-sm appearance-none cursor-pointer">
-                <option value="" className="text-gray-900 bg-white">Barcha kategoriyalar</option>
-                {categories.map((c) => <option key={c.id} value={c.id} className="text-gray-900 bg-white">{c.icon} {c.name}</option>)}
-              </select>
+            className="mt-12 max-w-3xl mx-auto flex flex-col gap-3 animate-slide-up" style={{ animationDelay: "0.2s" }}>
+
+            {/* Row 1: Category + Region + Button */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg pointer-events-none">🔧</span>
+                <select value={searchCategory} onChange={(e) => setSearchCategory(e.target.value)}
+                  className="w-full h-14 pl-11 pr-4 rounded-2xl bg-white/[0.08] backdrop-blur-md text-white border border-white/[0.12] focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/40 transition-all text-sm appearance-none cursor-pointer">
+                  <option value="" className="text-gray-900 bg-white">Barcha kategoriyalar</option>
+                  {categories.map((c) => <option key={c.id} value={c.id} className="text-gray-900 bg-white">{c.icon} {c.name}</option>)}
+                </select>
+              </div>
+
+              <div className="relative flex-1">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg pointer-events-none">🗺️</span>
+                <select value={searchRegion}
+                  onChange={(e) => { setSearchRegion(e.target.value); setSearchDistrict(""); }}
+                  className="w-full h-14 pl-11 pr-4 rounded-2xl bg-white/[0.08] backdrop-blur-md text-white border border-white/[0.12] focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/40 transition-all text-sm appearance-none cursor-pointer">
+                  <option value="" className="text-gray-900 bg-white">Barcha viloyatlar</option>
+                  {REGIONS.map((r) => <option key={r.name} value={r.name} className="text-gray-900 bg-white">{r.name}</option>)}
+                </select>
+              </div>
+
+              <button type="submit"
+                className="h-14 px-8 rounded-2xl font-semibold text-white text-sm whitespace-nowrap transition-all duration-200 active:scale-[0.97]"
+                style={{ background: "linear-gradient(135deg, #00C896, #00A87E)", boxShadow: "0 4px 20px rgba(0,200,150,0.3)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 6px 28px rgba(0,200,150,0.45)"; e.currentTarget.style.transform = "scale(1.02)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,200,150,0.3)"; e.currentTarget.style.transform = "scale(1)"; }}>
+                🔍 Qidirish
+              </button>
             </div>
-            <div className="relative flex-1">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg pointer-events-none">📍</span>
-              <select value={searchLocation} onChange={(e) => setSearchLocation(e.target.value)}
-                className="w-full h-14 pl-11 pr-4 rounded-2xl bg-white/[0.08] backdrop-blur-md text-white border border-white/[0.12] focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/40 transition-all text-sm appearance-none cursor-pointer">
-                <option value="" className="text-gray-900 bg-white">Barcha tumanlar</option>
-                {DISTRICTS.map((d) => <option key={d} value={d} className="text-gray-900 bg-white">{d}</option>)}
-              </select>
-            </div>
-            <button type="submit"
-              className="h-14 px-8 rounded-2xl font-semibold text-white text-sm whitespace-nowrap transition-all duration-200 active:scale-[0.97]"
-              style={{ background: "linear-gradient(135deg, #00C896, #00A87E)", boxShadow: "0 4px 20px rgba(0,200,150,0.3)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 6px 28px rgba(0,200,150,0.45)"; e.currentTarget.style.transform = "scale(1.02)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,200,150,0.3)"; e.currentTarget.style.transform = "scale(1)"; }}>
-              🔍 Qidirish
-            </button>
+
+            {/* Row 2: District — only shown when region is selected */}
+            {searchRegion && (
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg pointer-events-none">📍</span>
+                <select value={searchDistrict} onChange={(e) => setSearchDistrict(e.target.value)}
+                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-white/[0.08] backdrop-blur-md text-white border border-white/[0.12] focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/40 transition-all text-sm appearance-none cursor-pointer">
+                  <option value="" className="text-gray-900 bg-white">Barcha tumanlar ({regionDistricts.length} ta)</option>
+                  {regionDistricts.map((d) => <option key={d} value={d} className="text-gray-900 bg-white">{d}</option>)}
+                </select>
+              </div>
+            )}
           </form>
 
           {/* Stats */}
