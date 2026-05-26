@@ -56,7 +56,7 @@ export default function RegisterPage() {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 800));
     const rawPhone = "+" + form.phone.replace(/\D/g, "");
-    const result = register({ name: form.name, phone: rawPhone, role, email: "" });
+    const result = register({ name: form.name, phone: rawPhone, role, email: "", password: form.password });
     setLoading(false);
     if (result.success) router.push("/home");
     else setError(result.error || "Xatolik yuz berdi");

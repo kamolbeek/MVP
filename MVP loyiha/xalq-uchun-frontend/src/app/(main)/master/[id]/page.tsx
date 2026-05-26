@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { getMasterWithProfile, getReviewsByMaster, categories, getAllMastersWithProfiles } from "@/lib/mock/data";
+import { useStore } from "@/lib/store/useStore";
 
 const CAT_COLORS: Record<string,{bg:string;text:string}> = {
   "cat-1":{bg:"bg-blue-50",text:"text-blue-700"},"cat-2":{bg:"bg-amber-50",text:"text-amber-700"},
@@ -58,10 +59,15 @@ export default function MasterPage(){
   const {id}=useParams<{id:string}>();
   const master=getMasterWithProfile(id);
   const reviews=getReviewsByMaster(id);
+  const addReview = useStore((s) => s.addReview);
+  const isLoggedIn = useStore((s) => s.isLoggedIn);
+  const userReviews = useStore((s) => s.userReviews);
   const [showModal,setShowModal]=useState(false);
   const [showAllReviews,setShowAllReviews]=useState(false);
   const [showReviewForm,setShowReviewForm]=useState(false);
   const [newReview,setNewReview]=useState({rating:5,comment:""});
+  const [reviewSuccess,setReviewSuccess]=useState(false);
+  const [reviewError,setReviewError]=useState("");
   const similar=useMemo(()=>{if(!master)return[];return getAllMastersWithProfiles().filter(m=>m.id!==master.id&&m.profile.categories.includes(master.profile.categories[0])).slice(0,3);},[master]);
 
   if(!master) return(
@@ -165,9 +171,21 @@ export default function MasterPage(){
                 </div>
                 <textarea value={newReview.comment} onChange={e=>setNewReview(p=>({...p,comment:e.target.value}))} placeholder="Usta haqida fikringizni yozing..." rows={3} className="input-field resize-none"/>
                 <div className="flex gap-3 mt-3">
-                  <button onClick={()=>{setShowReviewForm(false);setNewReview({rating:5,comment:""});}} className="btn-secondary flex-1 text-sm py-2.5">Bekor qilish</button>
-                  <button onClick={()=>{setShowReviewForm(false);}} className="btn-primary flex-1 text-sm py-2.5">Yuborish</button>
+                  <button onClick={()=>{setShowReviewForm(false);setNewReview({rating:5,comment:""});setReviewSuccess(false);setReviewError("");}} className="btn-secondary flex-1 text-sm py-2.5">Bekor qilish</button>
+                  <button onClick={()=>{
+                    if(!isLoggedIn){setReviewError("Avval tizimga kiring");return;}
+                    const result = addReview(id, newReview.rating, newReview.comment);
+                    if(result.success){
+                      setReviewSuccess(true);
+                      setReviewError("");
+                      setTimeout(()=>{setShowReviewForm(false);setNewReview({rating:5,comment:""});setReviewSuccess(false);},1500);
+                    } else {
+                      setReviewError(result.error || "Xatolik yuz berdi");
+                    }
+                  }} className="btn-primary flex-1 text-sm py-2.5">Yuborish</button>
                 </div>
+                {reviewError && <p className="text-sm text-red-500 mt-2">{reviewError}</p>}
+                {reviewSuccess && <p className="text-sm text-emerald-600 mt-2 font-semibold">✅ Sharh muvaffaqiyatli yuborildi!</p>}
               </div>
             )}
 

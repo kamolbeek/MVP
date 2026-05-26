@@ -89,12 +89,69 @@ export default function Navbar() {
               {isLoggedIn && currentUser ? (
                 <>
                   {/* Notification bell */}
-                  <button className="relative w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 transition">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white" />
-                  </button>
+                  {(() => {
+                    const { notifications, markNotificationRead, markAllNotificationsRead } = useStore();
+                    const [notifOpen, setNotifOpen] = useState(false);
+                    const notifRef = useRef<HTMLDivElement>(null);
+                    const unreadCount = notifications.filter(n => !n.read).length;
+
+                    // Close on outside click
+                    useEffect(() => {
+                      function handler(e: MouseEvent) {
+                        if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+                          setNotifOpen(false);
+                        }
+                      }
+                      document.addEventListener("mousedown", handler);
+                      return () => document.removeEventListener("mousedown", handler);
+                    }, []);
+
+                    return (
+                      <div className="relative" ref={notifRef}>
+                        <button onClick={() => setNotifOpen(!notifOpen)} className="relative w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 transition">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                          </svg>
+                          {unreadCount > 0 && (
+                            <span className="absolute top-1 right-1 w-4 h-4 bg-emerald-500 rounded-full ring-2 ring-white text-[10px] font-bold text-white flex items-center justify-center">{unreadCount}</span>
+                          )}
+                        </button>
+
+                        {notifOpen && (
+                          <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl border border-gray-100 py-2 animate-slide-down" style={{boxShadow:"0 8px 30px rgba(0,0,0,0.12)"}}>
+                            <div className="px-4 py-2.5 border-b border-slate-50 flex justify-between items-center">
+                              <p className="text-sm font-bold text-slate-900">Bildirishnomalar</p>
+                              {unreadCount > 0 && (
+                                <button onClick={() => markAllNotificationsRead()} className="text-xs text-brand-600 hover:underline font-medium">
+                                  Barchasini o&apos;qish
+                                </button>
+                              )}
+                            </div>
+                            {notifications.length === 0 ? (
+                              <div className="p-6 text-center">
+                                <div className="text-3xl mb-2">🔔</div>
+                                <p className="text-sm text-[#6B7280]">Bildirishnomalar yo&apos;q</p>
+                              </div>
+                            ) : (
+                              <div className="max-h-72 overflow-y-auto">
+                                {notifications.map(n => (
+                                  <button key={n.id} onClick={() => { markNotificationRead(n.id); }}
+                                    className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition flex gap-3 ${!n.read ? "bg-brand-50/30" : ""}`}>
+                                    <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!n.read ? "bg-brand-500" : "bg-transparent"}`} />
+                                    <div>
+                                      <p className={`text-sm ${!n.read ? "font-bold text-slate-900" : "font-medium text-slate-700"}`}>{n.title}</p>
+                                      <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
+                                      <p className="text-xs text-slate-400 mt-1">{n.time}</p>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Avatar dropdown */}
                   <div className="relative" ref={dropdownRef}>
