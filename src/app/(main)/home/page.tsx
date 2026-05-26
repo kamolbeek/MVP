@@ -4,8 +4,11 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { categories, getAllMastersWithProfiles } from "@/lib/mock/data";
+import { categories, getAllMastersWithProfiles, getMasterWithProfile } from "@/lib/mock/data";
 import { REGIONS } from "@/constants";
+import { useStore } from "@/lib/store/useStore";
+import { ProfileCompletionBanner } from "@/components/features/ProfileCompletion";
+import type { MasterProfile } from "@/types";
 
 /* ────────────────────────────────────────────────────────────────────────────
    Stars Component
@@ -133,9 +136,15 @@ function MasterCard({ master, index }: { master: ReturnType<typeof getAllMasters
    ════════════════════════════════════════════════════════════════════════════ */
 export default function HomePage() {
   const router = useRouter();
+  const { currentUser } = useStore();
   const [searchCategory, setSearchCategory] = useState("");
   const [searchRegion, setSearchRegion] = useState("");
   const [searchDistrict, setSearchDistrict] = useState("");
+
+  const masterProfile = useMemo(() => {
+    if (currentUser?.role !== "master") return null;
+    return getMasterWithProfile(currentUser.id)?.profile ?? null;
+  }, [currentUser]);
 
   const allMasters = useMemo(() => getAllMastersWithProfiles(), []);
   const topMasters = useMemo(
@@ -264,6 +273,25 @@ export default function HomePage() {
           <svg viewBox="0 0 1440 50" fill="none"><path d="M0 50 C360 0 1080 0 1440 50 L1440 50 L0 50 Z" fill="#F8FAFB" /></svg>
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          1.5 MASTER DASHBOARD BANNER — only for master users
+      ═══════════════════════════════════════════════════════════════ */}
+      {currentUser?.role === "master" && masterProfile && (
+        <section className="py-6">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
+                Usta Dashboard
+              </span>
+            </div>
+            <ProfileCompletionBanner
+              user={currentUser}
+              profile={masterProfile as Partial<MasterProfile>}
+            />
+          </div>
+        </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           2. CATEGORIES — Unique colors per category
