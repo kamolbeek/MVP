@@ -56,7 +56,7 @@ function fmtPrice(n: number) {
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
-   Reverse-geocoding helpers (Nominatim / OpenStreetMap)
+   Reverse-geocoding helpers
    ════════════════════════════════════════════════════════════════════════════ */
 interface GeoAddress {
   state?: string; state_district?: string; county?: string;
@@ -64,6 +64,7 @@ interface GeoAddress {
   city?: string; town?: string; village?: string;
   [k: string]: string | undefined;
 }
+interface GoogleAddressComponent { long_name: string; types: string[]; }
 
 function normalizeGeo(s: string): string {
   return s.toLowerCase()
@@ -112,6 +113,98 @@ function geocodeToDistrict(addr: GeoAddress, regionName: string): string {
     }
   }
   return "";
+}
+
+/* ── 1st priority: Google Maps Geocoding API ── */
+async function reverseGeocodeGoogle(
+  lat: number, lng: number
+): Promise<{ region: string; district: string } | null> {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  if (!apiKey) return null;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}&language=en`,
+      { signal: controller.signal }
+    );
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.status !== "OK" || !data.results?.length) return null;
+
+    let stateName = "";
+    let subArea = "";
+    for (const comp of (data.results[0].address_components as GoogleAddressComponent[])) {
+      if (comp.types.includes("administrative_area_level_1")) stateName = comp.long_name;
+      if (!subArea && (
+        comp.types.includes("administrative_area_level_3") ||
+        comp.types.includes("administrative_area_level_2") ||
+        comp.types.includes("sublocality_level_1")
+      )) subArea = comp.long_name;
+    }
+
+    const fakeAddr: GeoAddress = { state: stateName, county: subArea, state_district: subArea };
+    const region = geocodeToRegion(fakeAddr);
+    if (!region) return null;
+    return { region, district: geocodeToDistrict(fakeAddr, region) };
+  } catch {
+    return null;
+  }
+}
+
+/* ── 2nd priority: manual lat/lng bounding-box mapping ── */
+const REGION_BOUNDS: ReadonlyArray<{
+  name: string; latMin: number; latMax: number; lngMin: number; lngMax: number;
+}> = [
+  // Specific/small regions first so overlapping boxes resolve correctly
+  { name: "Toshkent shahri",               latMin: 41.22, latMax: 41.40, lngMin: 69.10, lngMax: 69.43 },
+  { name: "Andijon viloyati",              latMin: 40.35, latMax: 41.10, lngMin: 71.70, lngMax: 73.15 },
+  { name: "Namangan viloyati",             latMin: 40.50, latMax: 41.45, lngMin: 70.00, lngMax: 71.80 },
+  { name: "Farg'ona viloyati",             latMin: 39.60, latMax: 41.05, lngMin: 70.30, lngMax: 72.05 },
+  { name: "Surxondaryo viloyati",          latMin: 36.70, latMax: 38.60, lngMin: 66.65, lngMax: 68.90 },
+  { name: "Qashqadaryo viloyati",          latMin: 37.20, latMax: 39.20, lngMin: 64.90, lngMax: 68.85 },
+  { name: "Samarqand viloyati",            latMin: 38.70, latMax: 40.10, lngMin: 65.25, lngMax: 67.50 },
+  { name: "Jizzax viloyati",               latMin: 39.50, latMax: 41.30, lngMin: 67.10, lngMax: 69.90 },
+  { name: "Sirdaryo viloyati",             latMin: 40.00, latMax: 41.05, lngMin: 67.70, lngMax: 70.10 },
+  { name: "Toshkent viloyati",             latMin: 40.65, latMax: 41.65, lngMin: 68.75, lngMax: 71.05 },
+  { name: "Navoiy viloyati",               latMin: 39.50, latMax: 43.10, lngMin: 62.50, lngMax: 66.45 },
+  { name: "Buxoro viloyati",               latMin: 37.00, latMax: 41.15, lngMin: 62.35, lngMax: 65.90 },
+  { name: "Xorazm viloyati",               latMin: 41.00, latMax: 42.10, lngMin: 59.60, lngMax: 62.10 },
+  { name: "Qoraqalpog'iston Respublikasi", latMin: 41.40, latMax: 45.70, lngMin: 55.40, lngMax: 62.65 },
+];
+
+const REGION_CENTERS: ReadonlyArray<{ name: string; lat: number; lng: number }> = [
+  { name: "Toshkent shahri",               lat: 41.30, lng: 69.27 },
+  { name: "Toshkent viloyati",             lat: 41.22, lng: 69.75 },
+  { name: "Andijon viloyati",              lat: 40.74, lng: 72.34 },
+  { name: "Namangan viloyati",             lat: 40.98, lng: 71.09 },
+  { name: "Farg'ona viloyati",             lat: 40.38, lng: 71.09 },
+  { name: "Samarqand viloyati",            lat: 39.65, lng: 66.96 },
+  { name: "Qashqadaryo viloyati",          lat: 38.88, lng: 66.01 },
+  { name: "Surxondaryo viloyati",          lat: 37.94, lng: 67.57 },
+  { name: "Jizzax viloyati",               lat: 40.12, lng: 67.84 },
+  { name: "Sirdaryo viloyati",             lat: 40.48, lng: 68.71 },
+  { name: "Navoiy viloyati",               lat: 40.84, lng: 64.60 },
+  { name: "Buxoro viloyati",               lat: 39.77, lng: 64.42 },
+  { name: "Xorazm viloyati",               lat: 41.52, lng: 60.62 },
+  { name: "Qoraqalpog'iston Respublikasi", lat: 43.40, lng: 59.60 },
+];
+
+function geocodeManual(lat: number, lng: number): string {
+  for (const b of REGION_BOUNDS) {
+    if (lat >= b.latMin && lat <= b.latMax && lng >= b.lngMin && lng <= b.lngMax) {
+      return b.name;
+    }
+  }
+  // Edge case: nearest region center (for points outside all bounding boxes)
+  let closest = "";
+  let minDist = Infinity;
+  for (const c of REGION_CENTERS) {
+    const d = Math.hypot(lat - c.lat, lng - c.lng);
+    if (d < minDist) { minDist = d; closest = c.name; }
+  }
+  return closest;
 }
 
 /* ── MasterRow card ── */
@@ -221,7 +314,7 @@ function SearchPageInner() {
     router.replace(`/search${params.toString() ? "?" + params.toString() : ""}`, { scroll: false });
   }, [query, category, region, district, minRating, priceMin, priceMax, onlyAvailable, sortBy, router]);
 
-  /* ── GPS detect ── */
+  /* ── GPS detect: Google Maps → manual bounding-box ── */
   async function detectLocation() {
     if (!("geolocation" in navigator)) {
       setLocError("Brauzer GPS ni qo'llab-quvvatlamaydi");
@@ -234,26 +327,31 @@ function SearchPageInner() {
     navigator.geolocation.getCurrentPosition(
       async pos => {
         try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=10&addressdetails=1`,
-            { headers: { "Accept-Language": "uz,en;q=0.9", "User-Agent": "USTAM-app/1.0" } }
-          );
-          if (!res.ok) throw new Error("API error");
-          const data = await res.json();
-          const addr: GeoAddress = data.address || {};
+          const { latitude: lat, longitude: lng } = pos.coords;
+          let detectedRegion = "";
+          let detectedDistrict = "";
 
-          const detectedRegion = geocodeToRegion(addr);
+          // 1. Google Maps Geocoding API (requires NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)
+          const gmResult = await reverseGeocodeGoogle(lat, lng);
+          if (gmResult) {
+            detectedRegion = gmResult.region;
+            detectedDistrict = gmResult.district;
+          }
+
+          // 2. Manual bounding-box fallback
+          if (!detectedRegion) {
+            detectedRegion = geocodeManual(lat, lng);
+          }
+
           if (detectedRegion) {
             setRegion(detectedRegion);
-            setDistrict("");
-            const detectedDistrict = geocodeToDistrict(addr, detectedRegion);
-            if (detectedDistrict) setDistrict(detectedDistrict);
+            setDistrict(detectedDistrict);
             setLocLabel(detectedDistrict ? `${detectedDistrict}, ${detectedRegion}` : detectedRegion);
           } else {
             setLocError("Joylashuv O'zbekiston ichida aniqlanmadi");
           }
         } catch {
-          setLocError("Tarmoq xatosi. Qayta urinib ko'ring.");
+          setLocError("Xato yuz berdi. Qayta urinib ko'ring.");
         } finally {
           setLocating(false);
         }
