@@ -241,7 +241,7 @@ function SearchPageInner() {
       {/* Price range */}
       <div>
         <label className="block text-sm font-bold text-[#0A0A0A] mb-2">Narx oraligi (so&apos;m/soat)</label>
-        <div className="flex gap-2 items-center">
+        <div className="grid grid-cols-2 gap-2">
           <input
             type="number"
             placeholder="Dan"
@@ -250,7 +250,6 @@ function SearchPageInner() {
             onChange={e => setPriceMin(e.target.value === "" ? "" : Number(e.target.value))}
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-[#0A0A0A] focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-all"
           />
-          <span className="text-gray-400 shrink-0">—</span>
           <input
             type="number"
             placeholder="Gacha"

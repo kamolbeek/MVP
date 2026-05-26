@@ -35,14 +35,16 @@ function ClientProfile(){
               <h1 className="text-2xl font-extrabold text-[#0A0A0A]">{currentUser.name}</h1>
               <p className="text-[#374151] text-sm mt-0.5 flex items-center gap-1 justify-center sm:justify-start">📞 {currentUser.phone}</p>
             </div>
-            <button onClick={()=>setTab("settings")} className="btn-outline text-sm py-2 px-5">Profilni tahrirlash</button>
+            <button onClick={()=>setTab("settings")} className="btn-outline text-sm py-2 px-5 w-full sm:w-auto">Profilni tahrirlash</button>
           </div>
         </div>
       </div>
 
-      {/* Tabs — pill style */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide p-1 bg-gray-100 rounded-xl w-fit">
-        {tabs.map(t=>(<button key={t.id} onClick={()=>setTab(t.id)} className={`px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${tab===t.id?"bg-white text-[#0A0A0A] shadow-sm":"text-[#6B7280] hover:text-[#0A0A0A]"}`}>{t.label}</button>))}
+      {/* Tabs — pill style, mobile scrollable */}
+      <div className="overflow-x-auto scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0">
+      <div className="flex gap-2 p-1 bg-gray-100 rounded-xl w-max sm:w-fit min-w-full sm:min-w-0">
+        {tabs.map(t=>(<button key={t.id} onClick={()=>setTab(t.id)} className={`shrink-0 px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${tab===t.id?"bg-white text-[#0A0A0A] shadow-sm":"text-[#6B7280] hover:text-[#0A0A0A]"}`}>{t.label}</button>))}
+      </div>
       </div>
 
       {/* Tab content */}
@@ -149,9 +151,11 @@ function MasterProfile(){
         </div>
       </div>
 
-      {/* Pill tabs */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide p-1 bg-gray-100 rounded-xl w-fit">
-        {tabs.map(t=>(<button key={t.id} onClick={()=>setTab(t.id)} className={`px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${tab===t.id?"bg-white text-[#0A0A0A] shadow-sm":"text-[#6B7280] hover:text-[#0A0A0A]"}`}>{t.label}</button>))}
+      {/* Pill tabs — mobile scrollable */}
+      <div className="overflow-x-auto scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0">
+        <div className="flex gap-2 p-1 bg-gray-100 rounded-xl w-max sm:w-fit min-w-full sm:min-w-0">
+          {tabs.map(t=>(<button key={t.id} onClick={()=>setTab(t.id)} className={`shrink-0 px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${tab===t.id?"bg-white text-[#0A0A0A] shadow-sm":"text-[#6B7280] hover:text-[#0A0A0A]"}`}>{t.label}</button>))}
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 animate-fade-in" style={{boxShadow:"0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)"}}>

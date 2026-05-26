@@ -168,19 +168,19 @@ export default function HomePage() {
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-32 text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.07] backdrop-blur-sm border border-white/[0.1] text-brand-400 text-sm font-medium mb-10 animate-fade-in">
-            <span className="w-2 h-2 bg-brand-400 rounded-full animate-pulse-soft" />
+          <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full bg-white/[0.07] backdrop-blur-sm border border-white/[0.1] text-brand-400 text-xs sm:text-sm font-medium mb-8 sm:mb-10 animate-fade-in">
+            <span className="w-2 h-2 bg-brand-400 rounded-full animate-pulse-soft shrink-0" />
             O&apos;zbekistondagi #1 ustalar platformasi
           </div>
 
           {/* Heading */}
-          <h1 className="text-4xl sm:text-5xl md:text-[3.5rem] lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight animate-slide-up">
+          <h1 className="text-[2rem] sm:text-5xl md:text-[3.5rem] lg:text-6xl font-extrabold text-white leading-[1.15] tracking-tight animate-slide-up">
             Kerakli ustani top,{" "}
             <span className="relative inline-block">
               <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(135deg, #00C896, #34D399, #2DD4BF)" }}>
                 qisqa vaqtda ishingizni bitiring
               </span>
-              <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 400 12" fill="none">
+              <svg className="absolute -bottom-2 left-0 w-full hidden sm:block" viewBox="0 0 400 12" fill="none">
                 <path d="M2 8 Q100 2 200 8 Q300 14 398 8" stroke="url(#hero-grad)" strokeWidth="3" strokeLinecap="round" />
                 <defs><linearGradient id="hero-grad" x1="0" y1="0" x2="1" y2="0">
                   <stop offset="0%" stopColor="#00C896" /><stop offset="100%" stopColor="#2DD4BF" />
@@ -222,7 +222,7 @@ export default function HomePage() {
           </form>
 
           {/* Stats */}
-          <div className="mt-16 flex items-center justify-center gap-10 sm:gap-20 animate-slide-up" style={{ animationDelay: "0.3s" }}>
+          <div className="mt-12 sm:mt-16 flex items-center justify-center gap-6 sm:gap-20 animate-slide-up" style={{ animationDelay: "0.3s" }}>
             {[
               { value: "500", suffix: "+", label: "Ustalar" },
               { value: "10K", suffix: "+", label: "Mijozlar" },
@@ -230,7 +230,7 @@ export default function HomePage() {
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <AnimatedCounter value={s.value} suffix={s.suffix} />
-                <div className="text-sm text-gray-500 mt-1 font-medium">{s.label}</div>
+                <div className="text-xs sm:text-sm text-gray-500 mt-1 font-medium">{s.label}</div>
               </div>
             ))}
           </div>

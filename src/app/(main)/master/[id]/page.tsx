@@ -34,30 +34,103 @@ const PORTFOLIO_ITEMS = [
 ];
 
 function ContactModal({master,onClose}:{master:MasterWithProfile;onClose:()=>void}){
+  const [tab,setTab]=useState<"call"|"order">("call");
+  const [form,setForm]=useState({name:"",phone:"",desc:""});
+  const [sent,setSent]=useState(false);
   if(!master)return null;
+
+  const cat=categories.find(c=>c.id===master.profile.categories[0]);
+
   return(
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}/>
-      <div className="relative bg-white w-full sm:max-w-sm sm:rounded-3xl rounded-t-3xl p-8 animate-slide-up" style={{boxShadow:"0 -8px 40px rgba(0,0,0,0.15)"}}>
-        <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6 sm:hidden"/>
-        <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition">✕</button>
-        <div className="text-center">
-          <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 mx-auto mb-4 ring-4 ring-brand-100">
-            <Image src={master.avatar} alt={master.name} width={80} height={80} className="w-full h-full object-cover" unoptimized/>
+      <div className="relative bg-white w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl overflow-hidden animate-slide-up" style={{boxShadow:"0 -8px 40px rgba(0,0,0,0.15)"}}>
+        {/* Drag handle */}
+        <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mt-3 mb-1 sm:hidden"/>
+        <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition z-10">✕</button>
+
+        {/* Master header */}
+        <div className="flex items-center gap-3 px-5 pt-4 pb-4 border-b border-gray-100">
+          <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 ring-2 ring-brand-100 shrink-0">
+            <Image src={master.avatar} alt={master.name} width={48} height={48} className="w-full h-full object-cover" unoptimized/>
           </div>
-          <h3 className="text-xl font-bold text-[#0A0A0A]">{master.name}</h3>
-          <p className="text-[#6B7280] text-sm mt-1 mb-6">Bog&apos;lanish uchun quyidagi raqamga qo&apos;ng&apos;iroq qiling</p>
-          <div className="bg-gray-50 rounded-2xl p-4 mb-5">
-            <p className="text-xs text-[#9CA3AF] mb-1">Telefon raqam</p>
-            <p className="text-2xl font-bold text-[#0A0A0A] tracking-wide">{master.phone}</p>
+          <div className="flex-1 min-w-0 pr-8">
+            <h3 className="font-bold text-[#0A0A0A] truncate">{master.name}</h3>
+            <p className="text-xs text-[#6B7280] truncate">{cat?.icon} {cat?.name} · {fmtPrice(master.profile.hourlyRate)}/soat</p>
           </div>
-          <a href={`tel:${master.phone}`} className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-semibold text-white text-sm mb-3 transition-all active:scale-[0.97]" style={{background:"linear-gradient(135deg,#00C896,#00A87E)",boxShadow:"0 4px 14px rgba(0,200,150,0.25)"}}>
-            📞 Qo&apos;ng&apos;iroq qilish
-          </a>
-          <a href={`https://t.me/+${master.phone?.replace(/\D/g,"")}`} target="_blank" className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-semibold text-white bg-blue-500 hover:bg-blue-600 text-sm mb-3 transition-all active:scale-[0.97]">
-            ✈️ Telegram
-          </a>
-          <button onClick={onClose} className="w-full py-3 rounded-xl text-sm font-medium text-[#6B7280] bg-gray-100 hover:bg-gray-200 transition">Yopish</button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-gray-100">
+          {([{id:"call",label:"📞 Qo'ng'iroq"},{id:"order",label:"📋 Buyurtma"}] as const).map(t=>(
+            <button key={t.id} onClick={()=>{setTab(t.id);setSent(false);}}
+              className={`flex-1 py-3.5 text-sm font-semibold transition-colors relative ${tab===t.id?"text-brand-600":"text-[#6B7280] hover:text-[#374151]"}`}>
+              {t.label}
+              {tab===t.id&&<span className="absolute bottom-0 inset-x-[25%] h-0.5 bg-brand-500 rounded-full"/>}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="p-5">
+          {/* ── Call tab ── */}
+          {tab==="call"&&(
+            <div>
+              <div className="bg-gray-50 rounded-2xl p-4 mb-4 text-center">
+                <p className="text-xs text-[#9CA3AF] mb-1">Telefon raqam</p>
+                <p className="text-xl font-bold text-[#0A0A0A] tracking-wider">{master.phone}</p>
+                <p className="text-xs text-[#6B7280] mt-1">🕐 {master.profile.workHours}</p>
+              </div>
+              <a href={`tel:${master.phone}`} className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-semibold text-white text-sm mb-3 transition-all active:scale-[0.97]" style={{background:"linear-gradient(135deg,#00C896,#00A87E)",boxShadow:"0 4px 14px rgba(0,200,150,0.25)"}}>
+                📞 Qo&apos;ng&apos;iroq qilish
+              </a>
+              <a href={`https://t.me/+${master.phone?.replace(/\D/g,"")}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-semibold text-white bg-[#229ED9] hover:bg-[#1a8bc4] text-sm mb-3 transition-all active:scale-[0.97]">
+                ✈️ Telegram orqali yozish
+              </a>
+              <button onClick={onClose} className="w-full py-3 rounded-xl text-sm font-medium text-[#6B7280] bg-gray-100 hover:bg-gray-200 transition">Yopish</button>
+            </div>
+          )}
+
+          {/* ── Order tab ── */}
+          {tab==="order"&&!sent&&(
+            <form onSubmit={e=>{e.preventDefault();setSent(true);}} className="space-y-3.5">
+              <div>
+                <label className="block text-sm font-bold text-[#0A0A0A] mb-1.5">Ismingiz</label>
+                <input type="text" required value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} className="input-field" placeholder="Ism familiya"/>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[#0A0A0A] mb-1.5">Telefon raqamingiz</label>
+                <input type="tel" required value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} className="input-field" placeholder="+998 90 000 00 00"/>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[#0A0A0A] mb-1.5">Xizmat tavsifi</label>
+                <textarea required value={form.desc} onChange={e=>setForm(p=>({...p,desc:e.target.value}))} className="input-field resize-none" rows={3} placeholder="Qanday ish kerak? Qachon bajarilishi kerak?"/>
+              </div>
+              <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex items-start gap-2">
+                <span className="text-base shrink-0">💰</span>
+                <p className="text-xs text-amber-700">Soatlik narx: <span className="font-bold">{fmtPrice(master.profile.hourlyRate)}</span>. Ish hajmiga qarab narx o&apos;zgarishi mumkin.</p>
+              </div>
+              <button type="submit" className="w-full py-3.5 rounded-xl font-semibold text-white text-sm transition-all active:scale-[0.97]" style={{background:"linear-gradient(135deg,#00C896,#00A87E)",boxShadow:"0 4px 14px rgba(0,200,150,0.25)"}}>
+                📤 Buyurtma yuborish
+              </button>
+            </form>
+          )}
+
+          {/* ── Order sent ── */}
+          {tab==="order"&&sent&&(
+            <div className="text-center py-4">
+              <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-3" style={{boxShadow:"0 0 0 8px rgba(0,200,150,0.07)"}}>
+                <svg className="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <h4 className="text-lg font-bold text-[#0A0A0A]">Buyurtma yuborildi!</h4>
+              <p className="text-sm text-[#6B7280] mt-1.5 leading-relaxed max-w-[260px] mx-auto">
+                Usta tez orada <span className="font-semibold text-[#374151]">{form.phone||master.phone}</span> raqamingizga qo&apos;ng&apos;iroq qiladi.
+              </p>
+              <button onClick={onClose} className="mt-5 w-full py-3 rounded-xl text-sm font-semibold text-white transition active:scale-[0.97]" style={{background:"linear-gradient(135deg,#00C896,#00A87E)"}}>
+                Yopish
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>);
@@ -165,16 +238,19 @@ export default function MasterPage(){
               </div>
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 {cat&&<span className={`px-3 py-1 rounded-lg text-xs font-semibold ${catColor.bg} ${catColor.text}`}>{cat.icon} {cat.name}</span>}
-                <span className="text-sm text-gray-300 flex items-center gap-1">📍 {profile.location.district}, {profile.location.region}</span>
-                <span className="text-sm text-gray-300">📅 {profile.experience} yil tajriba</span>
+                <span className="text-sm text-gray-300 flex items-center gap-1 min-w-0">
+                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                  <span className="truncate">{profile.location.district}, {profile.location.region}</span>
+                </span>
+                <span className="text-sm text-gray-300 shrink-0">📅 {profile.experience} yil</span>
               </div>
               <div className="flex items-center gap-3 mt-2 flex-wrap">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <Stars r={profile.rating} size={18}/>
                   <span className="text-lg font-bold text-white">{profile.rating.toFixed(1)}</span>
                   <span className="text-sm text-gray-400">({profile.reviewCount} ta sharh)</span>
                 </div>
-                <span className="px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-sm font-bold text-emerald-300">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-sm font-bold text-emerald-300 shrink-0">
                   💰 {fmtPrice(profile.hourlyRate)}<span className="text-xs font-normal text-gray-400">/soat</span>
                 </span>
               </div>
