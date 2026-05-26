@@ -21,9 +21,17 @@ function Stars({r,size=16}:{r:number;size?:number}) {
     </svg>))}</div>);
 }
 
+function fmtPrice(n:number){return n.toLocaleString("uz-UZ")+" so'm";}
 function relDate(d:string){const days=Math.floor((Date.now()-new Date(d).getTime())/86400000);if(days===0)return"Bugun";if(days<7)return`${days} kun oldin`;if(days<30)return`${Math.floor(days/7)} hafta oldin`;if(days<365)return`${Math.floor(days/30)} oy oldin`;return`${Math.floor(days/365)} yil oldin`;}
 
-const PORTFOLIO=[{title:"Vannaxona ta'miri",color:"from-blue-400 to-cyan-500"},{title:"Quvur almashtirish",color:"from-emerald-400 to-teal-500"},{title:"Kran o'rnatish",color:"from-violet-400 to-purple-500"},{title:"Chiqindi tizimi",color:"from-orange-400 to-amber-500"},{title:"Bojxona ishi",color:"from-rose-400 to-pink-500"},{title:"Issiqlik tizimi",color:"from-slate-400 to-slate-600"}];
+const PORTFOLIO_ITEMS = [
+  {title:"Vannaxona ta'miri",color:"from-blue-400 to-cyan-500",icon:"🚿"},
+  {title:"Quvur almashtirish",color:"from-emerald-400 to-teal-500",icon:"🔧"},
+  {title:"Kran o'rnatish",color:"from-violet-400 to-purple-500",icon:"⚙️"},
+  {title:"Chiqindi tizimi",color:"from-orange-400 to-amber-500",icon:"🏗️"},
+  {title:"Asbob-uskunalar",color:"from-rose-400 to-pink-500",icon:"🛠️"},
+  {title:"Issiqlik tizimi",color:"from-slate-400 to-slate-600",icon:"🌡️"},
+];
 
 function ContactModal({master,onClose}:{master:MasterWithProfile;onClose:()=>void}){
   if(!master)return null;
@@ -53,6 +61,57 @@ function ContactModal({master,onClose}:{master:MasterWithProfile;onClose:()=>voi
         </div>
       </div>
     </div>);
+}
+
+/* ── Portfolio Gallery with lightbox ── */
+function PortfolioGallery({items}:{items:typeof PORTFOLIO_ITEMS}) {
+  const [active,setActive]=useState<number|null>(null);
+  return(
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {items.map((item,i)=>(
+          <button key={i} onClick={()=>setActive(i)}
+            className={`group relative aspect-video rounded-xl bg-gradient-to-br ${item.color} overflow-hidden cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-brand-500`}
+            style={{transition:"transform 0.2s"}}
+            onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform="scale(1.03)";}}
+            onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform="scale(1)";}}>
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"/>
+            <div className="absolute top-2 right-2 w-7 h-7 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
+              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center opacity-30 text-4xl pointer-events-none">{item.icon}</div>
+            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/50 to-transparent">
+              <span className="text-white text-xs font-semibold drop-shadow">{item.title}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Lightbox */}
+      {active!==null&&(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={()=>setActive(null)}>
+          <div className="relative max-w-lg w-full rounded-2xl overflow-hidden" onClick={e=>e.stopPropagation()}>
+            <div className={`w-full aspect-video bg-gradient-to-br ${items[active].color} flex items-center justify-center`}>
+              <span className="text-7xl">{items[active].icon}</span>
+            </div>
+            <div className="bg-white p-4 flex items-center justify-between">
+              <div>
+                <p className="font-bold text-[#0A0A0A]">{items[active].title}</p>
+                <p className="text-xs text-[#6B7280]">{active+1} / {items.length}</p>
+              </div>
+              <div className="flex gap-2">
+                <button disabled={active===0} onClick={()=>setActive(a=>a!-1)} className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 disabled:opacity-40 flex items-center justify-center transition">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <button disabled={active===items.length-1} onClick={()=>setActive(a=>a!+1)} className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 disabled:opacity-40 flex items-center justify-center transition">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
+                </button>
+                <button onClick={()=>setActive(null)} className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition text-sm">✕</button>
+              </div>
+            </div>
+          </div>
+        </div>)}
+    </>);
 }
 
 export default function MasterPage(){
@@ -106,13 +165,18 @@ export default function MasterPage(){
               </div>
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 {cat&&<span className={`px-3 py-1 rounded-lg text-xs font-semibold ${catColor.bg} ${catColor.text}`}>{cat.icon} {cat.name}</span>}
-                <span className="text-sm text-gray-300 flex items-center gap-1">📍 {profile.location.district}, Toshkent</span>
+                <span className="text-sm text-gray-300 flex items-center gap-1">📍 {profile.location.district}, {profile.location.region}</span>
                 <span className="text-sm text-gray-300">📅 {profile.experience} yil tajriba</span>
               </div>
-              <div className="flex items-center gap-2 mt-3">
-                <Stars r={profile.rating} size={18}/>
-                <span className="text-lg font-bold text-white">{profile.rating.toFixed(1)}</span>
-                <span className="text-sm text-gray-400">({profile.reviewCount} ta sharh)</span>
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Stars r={profile.rating} size={18}/>
+                  <span className="text-lg font-bold text-white">{profile.rating.toFixed(1)}</span>
+                  <span className="text-sm text-gray-400">({profile.reviewCount} ta sharh)</span>
+                </div>
+                <span className="px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-sm font-bold text-emerald-300">
+                  💰 {fmtPrice(profile.hourlyRate)}<span className="text-xs font-normal text-gray-400">/soat</span>
+                </span>
               </div>
               <div className="flex items-center gap-3 mt-5 flex-wrap">
                 <button onClick={()=>setShowModal(true)} className="px-7 py-3 rounded-xl font-semibold text-white text-sm transition-all active:scale-[0.97]" style={{background:"linear-gradient(135deg,#00C896,#00A87E)",boxShadow:"0 4px 14px rgba(0,200,150,0.25)"}}>📞 Bog&apos;lanish</button>
@@ -140,20 +204,49 @@ export default function MasterPage(){
               </div>
             </div>
 
+            {/* Narx va ish vaqti */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-6" style={{boxShadow:"0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)"}}>
+              <h2 className="text-lg font-bold text-[#0A0A0A] mb-4">Narx va ish vaqti</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center text-2xl shrink-0">💰</div>
+                  <div>
+                    <p className="text-xs text-[#6B7280] font-medium">Soatlik narx</p>
+                    <p className="text-xl font-extrabold text-emerald-700">{fmtPrice(profile.hourlyRate)}</p>
+                    <p className="text-xs text-[#9CA3AF]">Kelishib olish mumkin</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
+                  <div className="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center text-2xl shrink-0">🕐</div>
+                  <div>
+                    <p className="text-xs text-[#6B7280] font-medium">Ish vaqti</p>
+                    <p className="text-base font-bold text-blue-700">{profile.workHours}</p>
+                    <p className="text-xs text-[#9CA3AF]">Belgilangan jadval</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div className="mt-4 p-4 rounded-xl border-2 border-dashed border-brand-200 bg-brand-50/50 flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <p className="text-sm font-bold text-[#0A0A0A]">Xizmat buyurtma qilmoqchimisiz?</p>
+                  <p className="text-xs text-[#6B7280]">Usta bilan bevosita bog&apos;laning</p>
+                </div>
+                <button onClick={()=>setShowModal(true)}
+                  className="shrink-0 px-6 py-2.5 rounded-xl font-semibold text-white text-sm transition-all active:scale-[0.97]"
+                  style={{background:"linear-gradient(135deg,#00C896,#00A87E)",boxShadow:"0 4px 14px rgba(0,200,150,0.2)"}}>
+                  📞 Bog&apos;lanish
+                </button>
+              </div>
+            </div>
+
             {/* Portfolio */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6" style={{boxShadow:"0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)"}}>
-              <h2 className="text-lg font-bold text-[#0A0A0A] mb-4">Ishlar namunasi</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {PORTFOLIO.map((item,i)=>(
-                  <div key={i} className={`group relative aspect-video rounded-xl bg-gradient-to-br ${item.color} overflow-hidden cursor-pointer`}
-                    onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.03)";}} onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";}}>
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"/>
-                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/40 to-transparent">
-                      <span className="text-white text-xs font-semibold drop-shadow">{item.title}</span>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-[#0A0A0A]">Ishlar namunasi</h2>
+                <span className="text-xs text-[#6B7280] bg-gray-100 px-2.5 py-1 rounded-lg font-medium">{PORTFOLIO_ITEMS.length} ta loyiha</span>
               </div>
+              <PortfolioGallery items={PORTFOLIO_ITEMS}/>
             </div>
 
             {/* Review form */}
@@ -211,22 +304,34 @@ export default function MasterPage(){
 
           {/* Sidebar */}
           <div className="space-y-5">
+            {/* Stats */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5" style={{boxShadow:"0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)"}}>
               <h3 className="font-bold text-[#0A0A0A] mb-4">Statistika</h3>
               <div className="space-y-3">
-                {[{label:"Umumiy reyting",val:`${profile.rating.toFixed(1)} / 5`,color:"text-amber-500"},{label:"Jami sharhlar",val:`${profile.reviewCount} ta`,color:"text-brand-600"},{label:"Tajriba",val:`${profile.experience} yil`,color:"text-blue-600"},{label:"Holati",val:profile.isAvailable?"Bo'sh":"Band",color:profile.isAvailable?"text-emerald-600":"text-gray-500"}].map(s=>(
+                {[
+                  {label:"Umumiy reyting",val:`${profile.rating.toFixed(1)} / 5`,color:"text-amber-500"},
+                  {label:"Jami sharhlar",val:`${profile.reviewCount} ta`,color:"text-brand-600"},
+                  {label:"Tajriba",val:`${profile.experience} yil`,color:"text-blue-600"},
+                  {label:"Soatlik narx",val:fmtPrice(profile.hourlyRate),color:"text-emerald-600"},
+                  {label:"Ish vaqti",val:profile.workHours,color:"text-violet-600"},
+                  {label:"Holati",val:profile.isAvailable?"Bo'sh":"Band",color:profile.isAvailable?"text-emerald-600":"text-gray-500"},
+                ].map(s=>(
                   <div key={s.label} className="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0">
-                    <span className="text-sm text-[#6B7280]">{s.label}</span><span className={`text-sm font-bold ${s.color}`}>{s.val}</span>
+                    <span className="text-sm text-[#6B7280]">{s.label}</span>
+                    <span className={`text-sm font-bold ${s.color} text-right max-w-[55%]`}>{s.val}</span>
                   </div>))}
               </div>
             </div>
 
+            {/* CTA Card */}
             <div className="rounded-2xl p-5 text-white" style={{background:"linear-gradient(135deg,#00C896,#00A87E)",boxShadow:"0 8px 24px rgba(0,200,150,0.2)"}}>
               <h3 className="font-bold mb-1">Bog&apos;lanishga tayyor!</h3>
-              <p className="text-emerald-100 text-sm mb-4">Usta hozir {profile.isAvailable?"bo'sh":"band"} va so&apos;rovlarni qabul qiladi.</p>
-              <button onClick={()=>setShowModal(true)} className="w-full py-3 rounded-xl font-semibold text-brand-700 bg-white hover:bg-brand-50 transition text-sm active:scale-[0.97]">📞 Bog&apos;lanish</button>
+              <p className="text-emerald-100 text-sm mb-1">Usta hozir {profile.isAvailable?"bo'sh":"band"}.</p>
+              <p className="text-emerald-200 text-xs mb-4">💰 {fmtPrice(profile.hourlyRate)} / soat · 🕐 {profile.workHours}</p>
+              <button onClick={()=>setShowModal(true)} className="w-full py-3 rounded-xl font-semibold text-brand-700 bg-white hover:bg-brand-50 transition text-sm active:scale-[0.97]">📞 Hozir bog&apos;lanish</button>
             </div>
 
+            {/* Location */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5" style={{boxShadow:"0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)"}}>
               <h3 className="font-bold text-[#0A0A0A] mb-3">📍 Joylashuv</h3>
               <div className="w-full h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center mb-3 relative overflow-hidden">
@@ -234,17 +339,21 @@ export default function MasterPage(){
                 <div className="relative z-10 text-center"><div className="text-3xl mb-1">📍</div><p className="text-xs font-bold text-[#374151]">{profile.location.district}</p></div>
               </div>
               <p className="text-sm text-[#374151] font-medium">{profile.location.address}</p>
-              <p className="text-xs text-[#6B7280] mt-0.5">{profile.location.city}, O&apos;zbekiston</p>
+              <p className="text-xs text-[#6B7280] mt-0.5">{profile.location.region}, O&apos;zbekiston</p>
             </div>
 
+            {/* Similar masters */}
             {similar.length>0&&(
               <div className="bg-white rounded-2xl border border-gray-100 p-5" style={{boxShadow:"0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)"}}>
                 <h3 className="font-bold text-[#0A0A0A] mb-4">O&apos;xshash ustalar</h3>
                 <div className="space-y-3">{similar.map(m=>{const sc=categories.find(c=>c.id===m.profile.categories[0]);return(
                   <Link key={m.id} href={`/master/${m.id}`} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 shrink-0"><Image src={m.avatar} alt={m.name} width={40} height={40} className="w-full h-full object-cover" unoptimized/></div>
-                    <div className="flex-1 min-w-0"><p className="text-sm font-bold text-[#0A0A0A] truncate">{m.name}</p><p className="text-xs text-[#6B7280]">{sc?.icon} {sc?.name} • ⭐ {m.profile.rating}</p></div>
-                    <span className="text-xs font-semibold text-brand-600">Ko&apos;rish →</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-[#0A0A0A] truncate">{m.name}</p>
+                      <p className="text-xs text-[#6B7280]">{sc?.icon} {sc?.name} · ⭐ {m.profile.rating}</p>
+                    </div>
+                    <span className="text-xs font-semibold text-brand-600 shrink-0">Ko&apos;rish →</span>
                   </Link>);})}</div>
               </div>)}
           </div>

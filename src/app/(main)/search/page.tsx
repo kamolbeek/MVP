@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { categories, getAllMastersWithProfiles } from "@/lib/mock/data";
-import { DISTRICTS } from "@/constants";
+import { REGIONS } from "@/constants";
 import { MasterWithProfile } from "@/types";
 
 /* ── Stars ── */
@@ -53,6 +53,10 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
   );
 }
 
+function fmtPrice(n: number) {
+  return n.toLocaleString("uz-UZ") + " so'm";
+}
+
 /* ── Horizontal Master Card — Premium ── */
 function MasterRow({ master }: { master: MasterWithProfile }) {
   const { profile } = master;
@@ -60,7 +64,7 @@ function MasterRow({ master }: { master: MasterWithProfile }) {
   const catColor = CAT_COLORS[profile.categories[0]] || CAT_COLORS["cat-1"];
 
   return (
-    <div className={`group bg-white rounded-2xl border border-gray-100 transition-all duration-300 p-5 relative overflow-hidden`}
+    <div className="group bg-white rounded-2xl border border-gray-100 transition-all duration-300 p-5 relative overflow-hidden"
       style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)", borderLeft: `3px solid ${profile.isAvailable ? "#00C896" : "#D1D5DB"}` }}
       onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.1)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)"; }}>
@@ -91,10 +95,15 @@ function MasterRow({ master }: { master: MasterWithProfile }) {
                 <span className="text-sm text-[#374151]">• {profile.experience} yil</span>
               </div>
             </div>
-            <span className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${profile.isAvailable ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${profile.isAvailable ? "bg-emerald-500" : "bg-gray-400"}`} />
-              {profile.isAvailable ? "Bo'sh" : "Band"}
-            </span>
+            <div className="flex flex-col items-end gap-1.5">
+              <span className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${profile.isAvailable ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${profile.isAvailable ? "bg-emerald-500" : "bg-gray-400"}`} />
+                {profile.isAvailable ? "Bo'sh" : "Band"}
+              </span>
+              <span className="text-sm font-bold text-brand-600">
+                {fmtPrice(profile.hourlyRate)}<span className="text-xs font-normal text-[#6B7280]">/soat</span>
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 mt-2.5">
@@ -127,24 +136,35 @@ function SearchPageInner() {
   const [query, setQuery] = useState(searchParams.get("q") || "");
   const [inputVal, setInputVal] = useState(searchParams.get("q") || "");
   const [category, setCategory] = useState(searchParams.get("category") || "");
+  const [region, setRegion] = useState(searchParams.get("region") || "");
   const [district, setDistrict] = useState(searchParams.get("district") || "");
   const [minRating, setMinRating] = useState(Number(searchParams.get("rating") || 0));
+  const [priceMin, setPriceMin] = useState(searchParams.get("pmin") ? Number(searchParams.get("pmin")) : "");
+  const [priceMax, setPriceMax] = useState(searchParams.get("pmax") ? Number(searchParams.get("pmax")) : "");
   const [onlyAvailable, setOnlyAvailable] = useState(searchParams.get("available") === "1");
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "rating");
   const [showFilters, setShowFilters] = useState(false);
 
   const allMasters = useMemo(() => getAllMastersWithProfiles(), []);
 
+  const regionDistricts = useMemo(() => {
+    if (!region) return [];
+    return REGIONS.find(r => r.name === region)?.districts ?? [];
+  }, [region]);
+
   useEffect(() => {
     const params = new URLSearchParams();
     if (query) params.set("q", query);
     if (category) params.set("category", category);
+    if (region) params.set("region", region);
     if (district) params.set("district", district);
     if (minRating) params.set("rating", String(minRating));
+    if (priceMin !== "") params.set("pmin", String(priceMin));
+    if (priceMax !== "") params.set("pmax", String(priceMax));
     if (onlyAvailable) params.set("available", "1");
     if (sortBy !== "rating") params.set("sort", sortBy);
     router.replace(`/search${params.toString() ? "?" + params.toString() : ""}`, { scroll: false });
-  }, [query, category, district, minRating, onlyAvailable, sortBy, router]);
+  }, [query, category, region, district, minRating, priceMin, priceMax, onlyAvailable, sortBy, router]);
 
   const filtered = useMemo(() => {
     let res = allMasters.filter(m => {
@@ -155,21 +175,29 @@ function SearchPageInner() {
         if (!m.name.toLowerCase().includes(q) && !profile.bio.toLowerCase().includes(q) && !catName.includes(q)) return false;
       }
       if (category && !profile.categories.includes(category)) return false;
+      if (region && profile.location.region !== region) return false;
       if (district && profile.location.district !== district) return false;
       if (minRating && profile.rating < minRating) return false;
+      if (priceMin !== "" && profile.hourlyRate < Number(priceMin)) return false;
+      if (priceMax !== "" && profile.hourlyRate > Number(priceMax)) return false;
       if (onlyAvailable && !profile.isAvailable) return false;
       return true;
     });
     res = [...res].sort((a, b) => {
       if (sortBy === "reviews") return b.profile.reviewCount - a.profile.reviewCount;
+      if (sortBy === "price-asc") return a.profile.hourlyRate - b.profile.hourlyRate;
+      if (sortBy === "price-desc") return b.profile.hourlyRate - a.profile.hourlyRate;
       if (sortBy === "new") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       return b.profile.rating - a.profile.rating;
     });
     return res;
-  }, [allMasters, query, category, district, minRating, onlyAvailable, sortBy]);
+  }, [allMasters, query, category, region, district, minRating, priceMin, priceMax, onlyAvailable, sortBy]);
 
-  const hasFilters = category || district || minRating || onlyAvailable;
-  function clearFilters() { setCategory(""); setDistrict(""); setMinRating(0); setOnlyAvailable(false); }
+  const hasFilters = !!(category || region || district || minRating || priceMin !== "" || priceMax !== "" || onlyAvailable);
+  function clearFilters() {
+    setCategory(""); setRegion(""); setDistrict(""); setMinRating(0);
+    setPriceMin(""); setPriceMax(""); setOnlyAvailable(false);
+  }
 
   /* ── Filter Panel ── */
   const FilterPanel = () => (
@@ -179,6 +207,7 @@ function SearchPageInner() {
         {hasFilters && <button onClick={clearFilters} className="text-xs text-brand-600 hover:underline font-semibold">Tozalash</button>}
       </div>
 
+      {/* Category */}
       <div>
         <label className="block text-sm font-bold text-[#0A0A0A] mb-2">Kategoriya</label>
         <select value={category} onChange={e => setCategory(e.target.value)}
@@ -188,21 +217,75 @@ function SearchPageInner() {
         </select>
       </div>
 
+      {/* Region */}
       <div>
-        <label className="block text-sm font-bold text-[#0A0A0A] mb-2">Tuman</label>
-        <select value={district} onChange={e => setDistrict(e.target.value)}
+        <label className="block text-sm font-bold text-[#0A0A0A] mb-2">Viloyat</label>
+        <select value={region} onChange={e => { setRegion(e.target.value); setDistrict(""); }}
           className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#0A0A0A] focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-all">
           <option value="">Barchasi</option>
-          {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+          {REGIONS.map(r => <option key={r.name} value={r.name}>{r.name}</option>)}
         </select>
       </div>
 
+      {/* District */}
+      <div>
+        <label className="block text-sm font-bold text-[#0A0A0A] mb-2">Tuman</label>
+        <select value={district} onChange={e => setDistrict(e.target.value)}
+          disabled={!region}
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#0A0A0A] focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+          <option value="">{region ? "Barchasi" : "Avval viloyat tanlang"}</option>
+          {regionDistricts.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+      </div>
+
+      {/* Price range */}
+      <div>
+        <label className="block text-sm font-bold text-[#0A0A0A] mb-2">Narx oraligi (so&apos;m/soat)</label>
+        <div className="flex gap-2 items-center">
+          <input
+            type="number"
+            placeholder="Dan"
+            value={priceMin}
+            min={0}
+            onChange={e => setPriceMin(e.target.value === "" ? "" : Number(e.target.value))}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-[#0A0A0A] focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-all"
+          />
+          <span className="text-gray-400 shrink-0">—</span>
+          <input
+            type="number"
+            placeholder="Gacha"
+            value={priceMax}
+            min={0}
+            onChange={e => setPriceMax(e.target.value === "" ? "" : Number(e.target.value))}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-[#0A0A0A] focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-all"
+          />
+        </div>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {[
+            { label: "≤100K", min: "", max: 100000 },
+            { label: "100–200K", min: 100000, max: 200000 },
+            { label: "200K+", min: 200000, max: "" },
+          ].map(opt => (
+            <button key={opt.label} type="button"
+              onClick={() => { setPriceMin(opt.min); setPriceMax(opt.max); }}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
+                priceMin === opt.min && priceMax === opt.max
+                  ? "border-brand-500 bg-brand-50 text-brand-700"
+                  : "border-gray-200 text-[#6B7280] hover:border-gray-300 hover:bg-gray-50"
+              }`}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Rating */}
       <div>
         <label className="block text-sm font-bold text-[#0A0A0A] mb-2">Minimal reyting</label>
         <StarPicker value={minRating} onChange={setMinRating} />
       </div>
 
-      {/* Toggle */}
+      {/* Available toggle */}
       <label className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-gray-50 transition-colors">
         <div className="relative">
           <input type="checkbox" checked={onlyAvailable} onChange={e => setOnlyAvailable(e.target.checked)} className="sr-only peer" />
@@ -219,6 +302,8 @@ function SearchPageInner() {
           {[
             { val: "rating", label: "⭐ Reyting bo'yicha" },
             { val: "reviews", label: "💬 Sharh soni bo'yicha" },
+            { val: "price-asc", label: "💰 Narx (arzon avval)" },
+            { val: "price-desc", label: "💎 Narx (qimmat avval)" },
             { val: "new", label: "🆕 Yangi" },
           ].map(opt => (
             <button key={opt.val} onClick={() => setSortBy(opt.val)}
@@ -300,6 +385,12 @@ function SearchPageInner() {
                     {categories.find(c => c.id === category)?.name} ✕
                   </button>
                 )}
+                {region && (
+                  <button onClick={() => { setRegion(""); setDistrict(""); }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-50 text-brand-700 text-xs font-semibold hover:bg-brand-100 transition">
+                    {region} ✕
+                  </button>
+                )}
                 {district && (
                   <button onClick={() => setDistrict("")}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-50 text-brand-700 text-xs font-semibold hover:bg-brand-100 transition">
@@ -310,6 +401,12 @@ function SearchPageInner() {
                   <button onClick={() => setMinRating(0)}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-semibold hover:bg-amber-100 transition">
                     {minRating}+ ★ ✕
+                  </button>
+                )}
+                {(priceMin !== "" || priceMax !== "") && (
+                  <button onClick={() => { setPriceMin(""); setPriceMax(""); }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-semibold hover:bg-emerald-100 transition">
+                    💰 Narx filtri ✕
                   </button>
                 )}
               </div>
