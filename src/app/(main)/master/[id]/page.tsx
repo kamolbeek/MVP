@@ -1,10 +1,13 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { getMasterWithProfile, getReviewsByMaster, categories, getAllMastersWithProfiles } from "@/lib/mock/data";
-import { MasterWithProfile } from "@/types";
+import { getMasterWithProfile, categories, getAllMastersWithProfiles } from "@/lib/mock/data";
+import { MasterWithProfile, Review } from "@/types";
+import { db } from "@/lib/firebase";
+import { collection, query, where, getDocs, addDoc, Timestamp } from "firebase/firestore";
+import { useStore } from "@/lib/store/useStore";
 
 const CAT_COLORS: Record<string,{bg:string;text:string}> = {
   "cat-1":{bg:"bg-blue-50",text:"text-blue-700"},"cat-2":{bg:"bg-amber-50",text:"text-amber-700"},
@@ -190,12 +193,37 @@ function PortfolioGallery({items}:{items:typeof PORTFOLIO_ITEMS}) {
 export default function MasterPage(){
   const {id}=useParams<{id:string}>();
   const master=getMasterWithProfile(id);
-  const reviews=getReviewsByMaster(id);
+  const {currentUser}=useStore();
   const [showModal,setShowModal]=useState(false);
   const [showAllReviews,setShowAllReviews]=useState(false);
   const [showReviewForm,setShowReviewForm]=useState(false);
   const [newReview,setNewReview]=useState({rating:5,comment:""});
+  const [firestoreReviews,setFirestoreReviews]=useState<Review[]>([]);
+  const [reviewsLoading,setReviewsLoading]=useState(true);
+  const [submitting,setSubmitting]=useState(false);
+  const [submitError,setSubmitError]=useState("");
   const similar=useMemo(()=>{if(!master)return[];return getAllMastersWithProfiles().filter(m=>m.id!==master.id&&m.profile.categories.includes(master.profile.categories[0])).slice(0,3);},[master]);
+
+  useEffect(()=>{
+    async function loadReviews(){
+      setReviewsLoading(true);
+      try{
+        const q=query(collection(db,"reviews"),where("masterId","==",id));
+        const snap=await getDocs(q);
+        const loaded:Review[]=snap.docs.map(d=>{
+          const data=d.data();
+          return{id:d.id,masterId:data.masterId,clientId:data.clientId,clientName:data.clientName,clientAvatar:data.clientAvatar,rating:data.rating,comment:data.comment,createdAt:data.createdAt instanceof Timestamp?data.createdAt.toDate().toISOString():new Date().toISOString()};
+        });
+        loaded.sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+        setFirestoreReviews(loaded);
+      }catch{
+        // tarmoq xatosi — bo'sh ro'yxat qoldirish
+      }finally{
+        setReviewsLoading(false);
+      }
+    }
+    loadReviews();
+  },[id]);
 
   if(!master) return(
     <div className="min-h-screen flex flex-col items-center justify-center text-center p-8" style={{background:"#F8FAFB"}}>
@@ -208,8 +236,11 @@ export default function MasterPage(){
   const {profile}=master;
   const cat=categories.find(c=>c.id===profile.categories[0]);
   const catColor=CAT_COLORS[profile.categories[0]]||CAT_COLORS["cat-1"];
-  const visibleReviews=showAllReviews?reviews:reviews.slice(0,5);
-  const breakdown=[{stars:5,pct:78},{stars:4,pct:14},{stars:3,pct:5},{stars:2,pct:2},{stars:1,pct:1}];
+  const displayRating=firestoreReviews.length>0?+(firestoreReviews.reduce((s,r)=>s+r.rating,0)/firestoreReviews.length).toFixed(1):profile.rating;
+  const displayReviewCount=firestoreReviews.length>0?firestoreReviews.length:profile.reviewCount;
+  const alreadyReviewed=!!currentUser&&firestoreReviews.some(r=>r.clientId===currentUser.id);
+  const visibleReviews=showAllReviews?firestoreReviews:firestoreReviews.slice(0,5);
+  const breakdown=[5,4,3,2,1].map(stars=>({stars,pct:firestoreReviews.length>0?Math.round(firestoreReviews.filter(r=>r.rating===stars).length/firestoreReviews.length*100):[78,14,5,2,1][[5,4,3,2,1].indexOf(stars)]}));
 
   return(
     <div className="min-h-screen" style={{background:"#F8FAFB"}}>
@@ -246,9 +277,9 @@ export default function MasterPage(){
               </div>
               <div className="flex items-center gap-3 mt-2 flex-wrap">
                 <div className="flex items-center gap-2 shrink-0">
-                  <Stars r={profile.rating} size={18}/>
-                  <span className="text-lg font-bold text-white">{profile.rating.toFixed(1)}</span>
-                  <span className="text-sm text-gray-400">({profile.reviewCount} ta sharh)</span>
+                  <Stars r={displayRating} size={18}/>
+                  <span className="text-lg font-bold text-white">{displayRating.toFixed(1)}</span>
+                  <span className="text-sm text-gray-400">({displayReviewCount} ta sharh)</span>
                 </div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-sm font-bold text-emerald-300 shrink-0">
                   💰 {fmtPrice(profile.hourlyRate)}<span className="text-xs font-normal text-gray-400">/soat</span>
@@ -256,7 +287,12 @@ export default function MasterPage(){
               </div>
               <div className="flex items-center gap-3 mt-5 flex-wrap">
                 <button onClick={()=>setShowModal(true)} className="px-7 py-3 rounded-xl font-semibold text-white text-sm transition-all active:scale-[0.97]" style={{background:"linear-gradient(135deg,#00C896,#00A87E)",boxShadow:"0 4px 14px rgba(0,200,150,0.25)"}}>📞 Bog&apos;lanish</button>
-                <button onClick={()=>setShowReviewForm(!showReviewForm)} className="px-7 py-3 rounded-xl font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 transition text-sm active:scale-[0.97]">✍️ Sharh qoldirish</button>
+                {currentUser&&!alreadyReviewed&&(
+                  <button onClick={()=>setShowReviewForm(!showReviewForm)} className="px-7 py-3 rounded-xl font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 transition text-sm active:scale-[0.97]">✍️ Sharh qoldirish</button>
+                )}
+                {alreadyReviewed&&(
+                  <span className="px-5 py-3 rounded-xl text-sm text-emerald-300 bg-white/10 border border-white/20">✓ Sharh qoldirildi</span>
+                )}
               </div>
             </div>
           </div>
@@ -326,19 +362,34 @@ export default function MasterPage(){
             </div>
 
             {/* Review form */}
-            {showReviewForm&&(
-              <div className="bg-white rounded-2xl border border-brand-100 p-6 animate-slide-up" style={{boxShadow:"0 4px 16px rgba(0,200,150,0.08)"}}>
+            {showReviewForm&&currentUser&&(
+              <form onSubmit={async e=>{
+                e.preventDefault();
+                if(!newReview.comment.trim())return;
+                setSubmitting(true);setSubmitError("");
+                try{
+                  const reviewData={masterId:id,clientId:currentUser.id,clientName:currentUser.name,clientAvatar:currentUser.avatar,rating:newReview.rating,comment:newReview.comment.trim(),createdAt:Timestamp.fromDate(new Date())};
+                  const docRef=await addDoc(collection(db,"reviews"),reviewData);
+                  setFirestoreReviews(prev=>[{id:docRef.id,...reviewData,createdAt:new Date().toISOString()},...prev]);
+                  setShowReviewForm(false);setNewReview({rating:5,comment:""});
+                }catch{
+                  setSubmitError("Sharh yuborishda xato. Qayta urinib ko'ring.");
+                }finally{
+                  setSubmitting(false);
+                }
+              }} className="bg-white rounded-2xl border border-brand-100 p-6 animate-slide-up" style={{boxShadow:"0 4px 16px rgba(0,200,150,0.08)"}}>
                 <h3 className="font-bold text-[#0A0A0A] mb-4">Sharh qoldirish</h3>
                 <div className="mb-4">
                   <label className="text-sm font-bold text-[#0A0A0A] mb-2 block">Baho</label>
-                  <div className="flex gap-2">{[1,2,3,4,5].map(s=>(<button key={s} onClick={()=>setNewReview(p=>({...p,rating:s}))} className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl transition-all ${s<=newReview.rating?"bg-amber-50 text-amber-400 scale-110":"bg-gray-50 text-gray-300"}`}>★</button>))}</div>
+                  <div className="flex gap-2">{[1,2,3,4,5].map(s=>(<button key={s} type="button" onClick={()=>setNewReview(p=>({...p,rating:s}))} className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl transition-all ${s<=newReview.rating?"bg-amber-50 text-amber-400 scale-110":"bg-gray-50 text-gray-300"}`}>★</button>))}</div>
                 </div>
-                <textarea value={newReview.comment} onChange={e=>setNewReview(p=>({...p,comment:e.target.value}))} placeholder="Usta haqida fikringizni yozing..." rows={3} className="input-field resize-none"/>
+                <textarea required value={newReview.comment} onChange={e=>setNewReview(p=>({...p,comment:e.target.value}))} placeholder="Usta haqida fikringizni yozing..." rows={3} className="input-field resize-none"/>
+                {submitError&&<p className="text-sm text-red-500 mt-2">{submitError}</p>}
                 <div className="flex gap-3 mt-3">
-                  <button onClick={()=>{setShowReviewForm(false);setNewReview({rating:5,comment:""});}} className="btn-secondary flex-1 text-sm py-2.5">Bekor qilish</button>
-                  <button onClick={()=>{setShowReviewForm(false);}} className="btn-primary flex-1 text-sm py-2.5">Yuborish</button>
+                  <button type="button" onClick={()=>{setShowReviewForm(false);setNewReview({rating:5,comment:""});setSubmitError("");}} className="btn-secondary flex-1 text-sm py-2.5">Bekor qilish</button>
+                  <button type="submit" disabled={submitting} className="btn-primary flex-1 text-sm py-2.5 disabled:opacity-60">{submitting?"Yuborilmoqda...":"Yuborish"}</button>
                 </div>
-              </div>
+              </form>
             )}
 
             {/* Reviews */}
@@ -346,8 +397,8 @@ export default function MasterPage(){
               <h2 className="text-lg font-bold text-[#0A0A0A] mb-5">Mijozlar sharhlari</h2>
               <div className="flex items-start gap-6 mb-6 pb-6 border-b border-gray-100">
                 <div className="text-center shrink-0">
-                  <div className="text-5xl font-extrabold text-[#0A0A0A]">{profile.rating.toFixed(1)}</div>
-                  <Stars r={profile.rating} size={18}/><p className="text-xs text-[#6B7280] mt-1">{profile.reviewCount} ta sharh</p>
+                  <div className="text-5xl font-extrabold text-[#0A0A0A]">{displayRating.toFixed(1)}</div>
+                  <Stars r={displayRating} size={18}/><p className="text-xs text-[#6B7280] mt-1">{displayReviewCount} ta sharh</p>
                 </div>
                 <div className="flex-1 space-y-2">
                   {breakdown.map(({stars,pct})=>(
@@ -359,7 +410,11 @@ export default function MasterPage(){
                     </div>))}
                 </div>
               </div>
-              {reviews.length===0?(<div className="text-center py-8"><div className="text-4xl mb-2">💬</div><p className="text-sm text-[#6B7280]">Hali sharhlar yo&apos;q</p></div>):(
+              {reviewsLoading?(
+                <div className="text-center py-8"><div className="w-6 h-6 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto"/></div>
+              ):firestoreReviews.length===0?(
+                <div className="text-center py-8"><div className="text-4xl mb-2">💬</div><p className="text-sm text-[#6B7280]">Hali sharhlar yo&apos;q</p>{!currentUser&&<p className="text-xs text-[#9CA3AF] mt-1">Sharh qoldirish uchun tizimga kiring</p>}</div>
+              ):(
                 <div className="space-y-4">
                   {visibleReviews.map(rev=>(
                     <div key={rev.id} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
@@ -373,8 +428,9 @@ export default function MasterPage(){
                         <p className="mt-1.5 text-sm text-[#374151] leading-relaxed">{rev.comment}</p>
                       </div>
                     </div>))}
-                  {reviews.length>5&&(<button onClick={()=>setShowAllReviews(!showAllReviews)} className="w-full py-3 rounded-xl text-sm font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 transition">{showAllReviews?"Kamroq ko'rsatish":`Ko'proq ko'rish (${reviews.length-5} ta)`}</button>)}
-                </div>)}
+                  {firestoreReviews.length>5&&(<button onClick={()=>setShowAllReviews(!showAllReviews)} className="w-full py-3 rounded-xl text-sm font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 transition">{showAllReviews?"Kamroq ko'rsatish":`Ko'proq ko'rish (${firestoreReviews.length-5} ta)`}</button>)}
+                </div>
+              )}
             </div>
           </div>
 
@@ -385,8 +441,8 @@ export default function MasterPage(){
               <h3 className="font-bold text-[#0A0A0A] mb-4">Statistika</h3>
               <div className="space-y-3">
                 {[
-                  {label:"Umumiy reyting",val:`${profile.rating.toFixed(1)} / 5`,color:"text-amber-500"},
-                  {label:"Jami sharhlar",val:`${profile.reviewCount} ta`,color:"text-brand-600"},
+                  {label:"Umumiy reyting",val:`${displayRating.toFixed(1)} / 5`,color:"text-amber-500"},
+                  {label:"Jami sharhlar",val:`${displayReviewCount} ta`,color:"text-brand-600"},
                   {label:"Tajriba",val:`${profile.experience} yil`,color:"text-blue-600"},
                   {label:"Soatlik narx",val:fmtPrice(profile.hourlyRate),color:"text-emerald-600"},
                   {label:"Ish vaqti",val:profile.workHours,color:"text-violet-600"},

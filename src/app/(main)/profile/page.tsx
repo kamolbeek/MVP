@@ -1,13 +1,73 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@/lib/store/useStore";
 import { reviews, getAllMastersWithProfiles, getMasterWithProfile } from "@/lib/mock/data";
+import { ref as sRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { doc, updateDoc } from "firebase/firestore";
+import { storage, db } from "@/lib/firebase";
 
 function Stars({r,size=15}:{r:number;size?:number}){return(<div className="flex gap-0.5">{[1,2,3,4,5].map(s=>(<svg key={s} width={size} height={size} className={s<=Math.round(r)?"text-amber-400":"text-gray-200"} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>))}</div>);}
 function relDate(d:string){const days=Math.floor((Date.now()-new Date(d).getTime())/86400000);if(days===0)return"Bugun";if(days<7)return`${days} kun oldin`;if(days<30)return`${Math.floor(days/7)} hafta oldin`;return`${Math.floor(days/30)} oy oldin`;}
 
+/* ── Shared avatar upload component — works for both Client and Master ── */
+function AvatarUpload({src,alt,large=false}:{src:string;alt:string;large?:boolean}){
+  const{currentUser,setCurrentUser}=useStore();
+  const fileInputRef=useRef<HTMLInputElement>(null);
+  const[uploading,setUploading]=useState(false);
+
+  async function handleUpload(e:React.ChangeEvent<HTMLInputElement>){
+    const file=e.target.files?.[0];
+    if(!file||!currentUser)return;
+    if(file.size>5*1024*1024){alert("Fayl 5 MB dan katta bo'lmasin");return;}
+    setUploading(true);
+    try{
+      const storageRef=sRef(storage,`avatars/${currentUser.id}`);
+      await uploadBytes(storageRef,file);
+      const url=await getDownloadURL(storageRef);
+      await updateDoc(doc(db,"users",currentUser.id),{avatar:url});
+      setCurrentUser({...currentUser,avatar:url});
+    }catch(err){
+      console.error("Avatar upload xatosi:",err);
+      alert("Rasm yuklanmadi. Qayta urinib ko'ring.");
+    }finally{
+      setUploading(false);
+      e.target.value="";
+    }
+  }
+
+  const dim=large?"w-28 h-28":"w-24 h-24";
+  const sz=large?112:96;
+
+  return(
+    <>
+      <div className="relative group cursor-pointer shrink-0" onClick={()=>fileInputRef.current?.click()}>
+        <div className={`${dim} rounded-full overflow-hidden bg-gray-100 ring-4 ring-white`}>
+          <Image src={src} alt={alt} width={sz} height={sz} className="w-full h-full object-cover" unoptimized/>
+        </div>
+        <div className={`absolute inset-0 rounded-full flex items-center justify-center transition ${uploading?"bg-black/50":"bg-black/40 opacity-0 group-hover:opacity-100"}`}>
+          {uploading?(
+            <svg className="w-6 h-6 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+          ):(
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          )}
+        </div>
+      </div>
+      <input type="file" accept="image/jpeg,image/png,image/webp" hidden ref={fileInputRef} onChange={handleUpload}/>
+    </>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Client Profile
+══════════════════════════════════════════════════════════════════ */
 function ClientProfile(){
   const{currentUser}=useStore();
   const[tab,setTab]=useState<"reviews"|"saved"|"settings">("reviews");
@@ -23,14 +83,7 @@ function ClientProfile(){
         <div className="h-24 w-full" style={{background:"linear-gradient(135deg, #00C896, #00A87E)"}}/>
         <div className="px-6 sm:px-8 pb-6 -mt-12">
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4">
-            <div className="relative group">
-              <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 ring-4 ring-white">
-                <Image src={currentUser.avatar} alt={currentUser.name} width={96} height={96} className="w-full h-full object-cover" unoptimized/>
-              </div>
-              <button className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              </button>
-            </div>
+            <AvatarUpload src={currentUser.avatar} alt={currentUser.name}/>
             <div className="flex-1 text-center sm:text-left sm:mb-1">
               <h1 className="text-2xl font-extrabold text-[#0A0A0A]">{currentUser.name}</h1>
               <p className="text-[#374151] text-sm mt-0.5 flex items-center gap-1 justify-center sm:justify-start">📞 {currentUser.phone}</p>
@@ -40,11 +93,11 @@ function ClientProfile(){
         </div>
       </div>
 
-      {/* Tabs — pill style, mobile scrollable */}
+      {/* Tabs */}
       <div className="overflow-x-auto scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0">
-      <div className="flex gap-2 p-1 bg-gray-100 rounded-xl w-max sm:w-fit min-w-full sm:min-w-0">
-        {tabs.map(t=>(<button key={t.id} onClick={()=>setTab(t.id)} className={`shrink-0 px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${tab===t.id?"bg-white text-[#0A0A0A] shadow-sm":"text-[#6B7280] hover:text-[#0A0A0A]"}`}>{t.label}</button>))}
-      </div>
+        <div className="flex gap-2 p-1 bg-gray-100 rounded-xl w-max sm:w-fit min-w-full sm:min-w-0">
+          {tabs.map(t=>(<button key={t.id} onClick={()=>setTab(t.id)} className={`shrink-0 px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${tab===t.id?"bg-white text-[#0A0A0A] shadow-sm":"text-[#6B7280] hover:text-[#0A0A0A]"}`}>{t.label}</button>))}
+        </div>
       </div>
 
       {/* Tab content */}
@@ -100,6 +153,9 @@ function ClientProfile(){
     </div>);
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   Master Profile
+══════════════════════════════════════════════════════════════════ */
 function MasterProfile(){
   const{currentUser}=useStore();
   const[tab,setTab]=useState<"edit"|"portfolio"|"reviews"|"settings">("edit");
@@ -117,12 +173,7 @@ function MasterProfile(){
         </div>
         <div className="px-6 sm:px-8 pb-6 -mt-14">
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5">
-            <div className="relative group">
-              <div className="w-28 h-28 rounded-full overflow-hidden bg-gray-100 ring-4 ring-white"><Image src={currentUser.avatar} alt={currentUser.name} width={112} height={112} className="w-full h-full object-cover" unoptimized/></div>
-              <button className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              </button>
-            </div>
+            <AvatarUpload src={currentUser.avatar} alt={currentUser.name} large/>
             <div className="flex-1 text-center sm:text-left">
               <h1 className="text-2xl font-extrabold text-[#0A0A0A]">{currentUser.name}</h1>
               <div className="flex items-center gap-2 mt-1.5 justify-center sm:justify-start flex-wrap">
@@ -151,7 +202,7 @@ function MasterProfile(){
         </div>
       </div>
 
-      {/* Pill tabs — mobile scrollable */}
+      {/* Pill tabs */}
       <div className="overflow-x-auto scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0">
         <div className="flex gap-2 p-1 bg-gray-100 rounded-xl w-max sm:w-fit min-w-full sm:min-w-0">
           {tabs.map(t=>(<button key={t.id} onClick={()=>setTab(t.id)} className={`shrink-0 px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${tab===t.id?"bg-white text-[#0A0A0A] shadow-sm":"text-[#6B7280] hover:text-[#0A0A0A]"}`}>{t.label}</button>))}
@@ -196,6 +247,9 @@ function MasterProfile(){
     </div>);
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   Page entry point
+══════════════════════════════════════════════════════════════════ */
 export default function ProfilePage(){
   const{currentUser,isLoggedIn}=useStore();
   if(!isLoggedIn||!currentUser) return(
