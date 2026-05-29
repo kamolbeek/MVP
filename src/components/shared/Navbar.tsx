@@ -18,14 +18,19 @@ export default function Navbar() {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
       }
     }
     document.addEventListener("mousedown", handler);
@@ -87,12 +92,27 @@ export default function Navbar() {
               {isLoggedIn && currentUser ? (
                 <>
                   {/* Notification bell */}
-                  <button className="relative w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 transition">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white" />
-                  </button>
+                  <div className="relative" ref={notifRef}>
+                    <button onClick={() => setNotifOpen((o) => !o)}
+                      className="relative w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 transition">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      </svg>
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white" />
+                    </button>
+
+                    {notifOpen && (
+                      <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl border border-gray-100 py-2 animate-slide-down" style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }}>
+                        <div className="px-4 py-2.5 border-b border-slate-50">
+                          <p className="text-sm font-semibold text-slate-900">Bildirishnomalar</p>
+                        </div>
+                        <div className="px-4 py-8 text-center">
+                          <div className="text-3xl mb-2">🔔</div>
+                          <p className="text-sm text-slate-500">Hozircha yangi bildirishnoma yo&apos;q</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Avatar dropdown */}
                   <div className="relative" ref={dropdownRef}>

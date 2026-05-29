@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -91,10 +92,19 @@ export default function LoginPage() {
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <label className="block text-sm font-medium text-slate-700">Parol</label>
-                <button type="button" className="text-xs text-emerald-600 hover:text-emerald-700 font-medium">
+                <button type="button" onClick={() => setShowForgot((v) => !v)} className="text-xs text-emerald-600 hover:text-emerald-700 font-medium">
                   Parolni unutdingizmi?
                 </button>
               </div>
+              {showForgot && (
+                <div className="mt-2 p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-xs text-emerald-700 leading-relaxed">
+                  Parolni tiklash uchun{" "}
+                  <a href="mailto:info@ustam.uz" className="font-semibold underline">info@ustam.uz</a>{" "}
+                  manziliga murojaat qiling yoki{" "}
+                  <a href="tel:+998711234567" className="font-semibold underline">+998 71 123 45 67</a>{" "}
+                  raqamiga qo&apos;ng&apos;iroq qiling.
+                </div>
+              )}
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔒</span>
                 <input

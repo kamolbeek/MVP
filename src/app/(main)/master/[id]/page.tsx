@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { getMasterWithProfile, categories, getAllMastersWithProfiles } from "@/lib/mock/data";
 import { MasterWithProfile, Review } from "@/types";
-import { db } from "@/lib/firebase";
+import { getDb } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc, Timestamp } from "firebase/firestore";
 import { useStore } from "@/lib/store/useStore";
 
@@ -208,7 +208,7 @@ export default function MasterPage(){
     async function loadReviews(){
       setReviewsLoading(true);
       try{
-        const q=query(collection(db,"reviews"),where("masterId","==",id));
+        const q=query(collection(getDb(),"reviews"),where("masterId","==",id));
         const snap=await getDocs(q);
         const loaded:Review[]=snap.docs.map(d=>{
           const data=d.data();
@@ -369,7 +369,7 @@ export default function MasterPage(){
                 setSubmitting(true);setSubmitError("");
                 try{
                   const reviewData={masterId:id,clientId:currentUser.id,clientName:currentUser.name,clientAvatar:currentUser.avatar,rating:newReview.rating,comment:newReview.comment.trim(),createdAt:Timestamp.fromDate(new Date())};
-                  const docRef=await addDoc(collection(db,"reviews"),reviewData);
+                  const docRef=await addDoc(collection(getDb(),"reviews"),reviewData);
                   setFirestoreReviews(prev=>[{id:docRef.id,...reviewData,createdAt:new Date().toISOString()},...prev]);
                   setShowReviewForm(false);setNewReview({rating:5,comment:""});
                 }catch{
